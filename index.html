@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f3f4f6;
@@ -20,43 +21,44 @@
             line-height: 1.5;
             padding: 16px;
         }
-        
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
-        
+
         section {
             background-color: white;
             border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             padding: 16px;
             margin-bottom: 16px;
         }
-        
-        h1, h2 {
+
+        h1,
+        h2 {
             font-weight: 600;
             color: #111827;
         }
-        
+
         h1 {
             font-size: 1.5rem;
             text-align: center;
             margin-bottom: 4px;
         }
-        
+
         h2 {
             font-size: 1.125rem;
             margin-bottom: 12px;
         }
-        
+
         .subtitle {
             color: #6b7280;
             font-size: 0.875rem;
             text-align: center;
             margin-bottom: 16px;
         }
-        
+
         input[type="text"],
         input[type="file"] {
             width: 100%;
@@ -66,7 +68,7 @@
             font-size: 0.875rem;
             margin-bottom: 12px;
         }
-        
+
         button {
             padding: 8px 16px;
             border-radius: 4px;
@@ -79,68 +81,68 @@
             justify-content: center;
             transition: background-color 0.2s;
         }
-        
+
         .btn-primary {
             background-color: #3b82f6;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background-color: #2563eb;
         }
-        
+
         .btn-danger {
             background-color: #ef4444;
             color: white;
         }
-        
+
         .btn-danger:hover {
             background-color: #dc2626;
         }
-        
+
         .btn-success {
             background-color: #10b981;
             color: white;
         }
-        
+
         .btn-success:hover {
             background-color: #059669;
         }
-        
+
         .btn-warning {
             background-color: #f59e0b;
             color: white;
         }
-        
+
         .btn-warning:hover {
             background-color: #d97706;
         }
-        
+
         .btn-secondary {
             background-color: #8b5cf6;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background-color: #7c3aed;
         }
-        
+
         .flex {
             display: flex;
         }
-        
+
         .justify-between {
             justify-content: space-between;
         }
-        
+
         .items-center {
             align-items: center;
         }
-        
+
         .hidden {
             display: none;
         }
-        
+
         #productList {
             max-height: 300px;
             overflow-y: auto;
@@ -148,7 +150,7 @@
             border-bottom: 1px solid #e5e7eb;
             margin: 8px 0;
         }
-        
+
         #productList li {
             padding: 8px 0;
             border-bottom: 1px solid #e5e7eb;
@@ -156,51 +158,51 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         #productList li:last-child {
             border-bottom: none;
         }
-        
+
         .product-info {
             flex: 1;
             overflow: hidden;
         }
-        
+
         .product-name {
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .product-code {
             font-size: 0.75rem;
             color: #6b7280;
         }
-        
+
         .product-status {
             font-weight: 500;
             margin-left: 8px;
             white-space: nowrap;
         }
-        
+
         .status-ok {
             color: #10b981;
         }
-        
+
         .status-warning {
             color: #f59e0b;
         }
-        
+
         .status-error {
             color: #ef4444;
         }
-        
+
         .product-complete {
             opacity: 0.7;
             background-color: rgba(16, 185, 129, 0.1);
         }
-        
+
         .progress-container {
             width: 100%;
             background-color: #e5e7eb;
@@ -208,14 +210,14 @@
             height: 8px;
             margin-bottom: 8px;
         }
-        
+
         .progress-bar {
             height: 100%;
             border-radius: 4px;
             background-color: #10b981;
             transition: width 0.3s;
         }
-        
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -223,29 +225,29 @@
             text-align: center;
             margin-top: 12px;
         }
-        
+
         .stat-value {
             font-weight: 600;
             font-size: 1.25rem;
         }
-        
+
         #videoContainer {
             position: relative;
             margin-bottom: 16px;
         }
-        
+
         #video {
             width: 100%;
             border-radius: 8px;
         }
-        
+
         .camera-overlay {
             position: absolute;
             inset: 0;
             border: 4px solid rgba(59, 130, 246, 0.5);
             pointer-events: none;
         }
-        
+
         .toast {
             position: fixed;
             bottom: 20px;
@@ -260,33 +262,34 @@
             transition: opacity 0.3s ease-in-out;
             font-size: 0.875rem;
         }
-        
+
         .toast.show {
             opacity: 1;
         }
-        
+
         @media (max-width: 640px) {
             .container {
                 padding: 8px;
             }
-            
+
             .actions-container {
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .actions-container button {
                 width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <div id="toast" class="toast"></div>
 
     <div class="container">
         <header class="text-center">
-            <h1>📱 Inventário Mobile</h1>
+            <h1>📱 Inventário Mobile v3</h1>
             <p class="subtitle">Escaneie produtos para verificar a carga</p>
         </header>
 
@@ -310,8 +313,8 @@
                 <div class="camera-overlay"></div>
             </div>
             <div class="flex items-center">
-                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)" 
-                       onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
+                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
+                    onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
                 <button id="addProduct" class="btn-success ml-2">
                     ➕ Adicionar
                 </button>
@@ -323,7 +326,8 @@
             <div class="progress-container">
                 <div id="progressBar" class="progress-bar" style="width: 0%"></div>
             </div>
-            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span id="totalCount">0</span>)</p>
+            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span
+                    id="totalCount">0</span>)</p>
             <div class="stats-grid">
                 <div>
                     <p class="stat-value"><span id="scannedCount">0</span></p>
@@ -426,7 +430,7 @@
 456789123456,Produto C,2
 789123456789,Produto D,1
 321654987321,Produto E,4`;
-            
+
             state.products = parseCsv(testData);
             state.scannedProducts = [];
             saveState();
@@ -441,25 +445,18 @@
                 document.getElementById('startCamera').classList.add('hidden');
                 document.getElementById('stopCamera').classList.remove('hidden');
 
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
                         facingMode: 'environment',
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
-                    } 
+                    }
                 });
                 video.srcObject = stream;
                 video.play();
 
                 state.codeReader = new ZXing.BrowserMultiFormatReader();
-                state.codeReader.decodeFromVideoElement(video, (result, err) => {
-                    if (result) {
-                        handleScannedCode(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Erro no scanner:', err);
-                    }
-                });
+                startPeriodicVerification();
             } catch (error) {
                 console.error('Erro ao acessar a câmera:', error);
                 showToast('Erro ao acessar a câmera. Verifique as permissões.');
@@ -468,16 +465,17 @@
         }
 
         function stopCamera() {
+            stopPeriodicVerification(); // Para a verificação periódica
             if (state.codeReader) {
                 state.codeReader.reset();
                 state.codeReader = null;
             }
-            
+
             const video = document.getElementById('video');
             if (video.srcObject) {
                 video.srcObject.getTracks().forEach(track => track.stop());
             }
-            
+
             document.getElementById('videoContainer').classList.add('hidden');
             document.getElementById('startCamera').classList.remove('hidden');
             document.getElementById('stopCamera').classList.add('hidden');
@@ -486,7 +484,7 @@
         function addProductManually() {
             const codeInput = document.getElementById('barcodeInput');
             const code = codeInput.value.trim();
-            
+
             if (code) {
                 handleScannedCode(code);
                 codeInput.value = '';
@@ -495,7 +493,7 @@
 
         function handleScannedCode(code) {
             const product = state.products.find(p => p.code === code);
-            
+
             if (product) {
                 if (product.scannedQty >= product.expectedQty) {
                     showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
@@ -503,13 +501,13 @@
                     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
                     return;
                 }
-                
+
                 product.scannedQty = (product.scannedQty || 0) + 1;
                 state.scannedProducts.push(code);
                 saveState();
                 updateProductList();
                 playBeep();
-                
+
                 if (product.scannedQty === product.expectedQty) {
                     showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
                 }
@@ -523,7 +521,7 @@
         function updateProductList() {
             const productList = document.getElementById('productList');
             const noProducts = document.getElementById('noProducts');
-            
+
             const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
             const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
             const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
@@ -533,15 +531,15 @@
             if (state.products.length > 0) {
                 noProducts.classList.add('hidden');
                 productList.classList.remove('hidden');
-                
+
                 productList.innerHTML = state.products.map(product => {
                     const isComplete = product.scannedQty === product.expectedQty;
                     const isOver = product.scannedQty > product.expectedQty;
                     const isUnder = product.scannedQty < product.expectedQty;
-                    
+
                     let statusClass = 'status-ok';
                     let statusIcon = '✓ (Completo)';
-                    
+
                     if (isOver) {
                         statusClass = 'status-warning';
                         statusIcon = '⚠️ (Excesso)';
@@ -549,7 +547,7 @@
                         statusClass = 'status-error';
                         statusIcon = '⚠️ (Faltando)';
                     }
-                    
+
                     return `
                         <li class="${isComplete ? 'product-complete' : ''}">
                             <div class="product-info">
@@ -567,7 +565,7 @@
                 noProducts.classList.remove('hidden');
                 productList.classList.add('hidden');
             }
-            
+
             document.getElementById('scannedCount').textContent = scannedQty;
             document.getElementById('expectedCount').textContent = totalQty;
             document.getElementById('okCount').textContent = okCount;
@@ -576,10 +574,10 @@
             document.getElementById('totalCount').textContent = totalQty;
             document.getElementById('progressBar').style.width = `${progressPercent}%`;
             document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-            
+
             const progressBar = document.getElementById('progressBar');
             progressBar.className = 'progress-bar';
-            
+
             if (progressPercent === 100 && problemCount === 0) {
                 progressBar.classList.add('bg-green-500');
             } else if (progressPercent === 100) {
@@ -602,7 +600,7 @@
 
             try {
                 showToast('Gerando imagem...');
-                
+
                 const exportElement = document.createElement('div');
                 exportElement.className = 'export-container';
                 exportElement.style.background = 'white';
@@ -610,46 +608,46 @@
                 exportElement.style.borderRadius = '8px';
                 exportElement.style.maxWidth = '800px';
                 exportElement.style.margin = '0 auto';
-                
+
                 const title = document.createElement('h1');
                 title.textContent = 'Relatório de Inventário';
                 title.style.textAlign = 'center';
                 title.style.marginBottom = '16px';
                 title.style.fontSize = '1.5rem';
                 exportElement.appendChild(title);
-                
+
                 const date = document.createElement('p');
                 date.textContent = new Date().toLocaleString();
                 date.style.textAlign = 'center';
                 date.style.marginBottom = '24px';
                 date.style.color = '#666';
                 exportElement.appendChild(date);
-                
+
                 const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
                 progressSection.style.marginBottom = '24px';
                 exportElement.appendChild(progressSection);
-                
+
                 const productList = document.getElementById('productList').cloneNode(true);
                 productList.style.maxHeight = 'none';
                 productList.style.overflow = 'visible';
                 exportElement.appendChild(productList);
-                
+
                 document.body.appendChild(exportElement);
-                
+
                 const canvas = await html2canvas(exportElement, {
                     scale: 2,
                     logging: false,
                     useCORS: true,
                     allowTaint: true
                 });
-                
+
                 document.body.removeChild(exportElement);
-                
+
                 const link = document.createElement('a');
                 link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                
+
                 showToast('Imagem exportada com sucesso');
             } catch (error) {
                 console.error('Erro ao exportar imagem:', error);
@@ -664,11 +662,11 @@
                 state.scannedProducts = [];
                 localStorage.removeItem('products');
                 localStorage.removeItem('scannedProducts');
-                
+
                 document.getElementById('csvInput').value = '';
                 document.getElementById('barcodeInput').value = '';
                 updateProductList();
-                
+
                 showToast('Todos os dados foram limpos');
             }
         }
@@ -677,18 +675,18 @@
             if (!state.audioContext) {
                 state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-            
+
             const oscillator = state.audioContext.createOscillator();
             const gain = state.audioContext.createGain();
-            
+
             oscillator.type = 'sine';
             oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
             gain.gain.setValueAtTime(1, state.audioContext.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
-            
+
             oscillator.connect(gain);
             gain.connect(state.audioContext.destination);
-            
+
             oscillator.start();
             oscillator.stop(state.audioContext.currentTime + 0.3);
         }
@@ -697,18 +695,18 @@
             if (!state.audioContext) {
                 state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-            
+
             const oscillator = state.audioContext.createOscillator();
             const gain = state.audioContext.createGain();
-            
+
             oscillator.type = 'square';
             oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
             gain.gain.setValueAtTime(1, state.audioContext.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
-            
+
             oscillator.connect(gain);
             gain.connect(state.audioContext.destination);
-            
+
             oscillator.start();
             oscillator.stop(state.audioContext.currentTime + 0.5);
         }
@@ -717,11 +715,38 @@
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.classList.add('show');
-            
+
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        let verificationInterval = null;
+
+        function startPeriodicVerification() {
+            const video = document.getElementById('video');
+            if (!state.codeReader || !video.srcObject) return;
+
+            // Verifica a cada 1 segundo
+            verificationInterval = setInterval(async () => {
+                try {
+                    const result = await state.codeReader.decodeOnceFromVideoElement(video);
+                    if (result) {
+                        handleScannedCode(result.text);
+                    }
+                } catch (err) {
+                    // Ignorar erro silenciosamente ou tratar conforme necessário
+                }
+            }, 1000); // 1000 ms = 1 segundo
+        }
+
+        function stopPeriodicVerification() {
+            if (verificationInterval) {
+                clearInterval(verificationInterval);
+                verificationInterval = null;
+            }
+        }
     </script>
 </body>
+
 </html>
