@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contador de Produtos - Transportadora</title>
+    <title>Inventário Mobile - Leitor de Códigos</title>
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -114,15 +113,6 @@
         
         .btn-warning:hover {
             background-color: #d97706;
-        }
-        
-        .btn-secondary {
-            background-color: #8b5cf6;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #7c3aed;
         }
         
         .flex {
@@ -286,23 +276,23 @@
 
     <div class="container">
         <header class="text-center">
-            <h1>📱 Inventário Mobile</h1>
-            <p class="subtitle">Escaneie produtos para verificar a carga</p>
+            <h1>📱 Leitor de Códigos - Inventário</h1>
+            <p class="subtitle">Escaneie códigos de barras ou QR codes para verificar os produtos</p>
         </header>
 
         <section>
-            <label for="csvInput" class="block">Carregar Lista CSV</label>
+            <label for="csvInput" class="block">Carregar Lista de Produtos (CSV)</label>
             <input id="csvInput" type="file" accept=".csv">
-            <p class="text-sm">Formato esperado: Código,Nome,Quantidade (uma linha por produto)</p>
+            <p class="text-sm">Formato: Código,Nome,Quantidade (um produto por linha)</p>
         </section>
 
         <section>
             <div class="flex justify-between mb-4">
                 <button id="startCamera" class="btn-primary">
-                    📷 Iniciar Scanner
+                    📷 Ativar Leitor
                 </button>
                 <button id="stopCamera" class="btn-danger hidden">
-                    ⏹️ Parar Scanner
+                    ⏹️ Desativar Leitor
                 </button>
             </div>
             <div id="videoContainer" class="hidden">
@@ -310,7 +300,7 @@
                 <div class="camera-overlay"></div>
             </div>
             <div class="flex items-center">
-                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)" 
+                <input id="barcodeInput" type="text" placeholder="Digite o código manualmente" 
                        onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
                 <button id="addProduct" class="btn-success ml-2">
                     ➕ Adicionar
@@ -345,20 +335,17 @@
         </section>
 
         <section>
-            <h2>📦 Produtos</h2>
+            <h2>📦 Produtos Verificados</h2>
             <div id="noProducts" class="text-center py-4">
                 <p class="text-xl">📦</p>
-                <p>Carregue um CSV e escaneie os produtos!</p>
+                <p>Nenhum produto escaneado ainda</p>
             </div>
             <ul id="productList" class="hidden"></ul>
         </section>
 
         <section class="actions-container flex justify-between gap-2">
             <button id="loadTestData" class="btn-warning">
-                📊 Carregar Dados Teste
-            </button>
-            <button id="exportImage" class="btn-secondary">
-                🖼️ Exportar Relatório
+                📊 Dados de Teste
             </button>
             <button id="clearAll" class="btn-danger">
                 🗑️ Limpar Tudo
@@ -385,7 +372,6 @@
             document.getElementById('startCamera').addEventListener('click', startCamera);
             document.getElementById('stopCamera').addEventListener('click', stopCamera);
             document.getElementById('addProduct').addEventListener('click', addProductManually);
-            document.getElementById('exportImage').addEventListener('click', exportAsImage);
             document.getElementById('clearAll').addEventListener('click', clearAll);
         }
 
@@ -400,6 +386,7 @@
                 state.scannedProducts = [];
                 saveState();
                 updateProductList();
+                showToast('Lista de produtos carregada com sucesso');
             };
             reader.readAsText(file);
         }
@@ -421,17 +408,17 @@
 
         function loadTestData() {
             const testData = `code,name,expectedQty
-123456789012,Produto A,5
-987654321098,Produto B,3
-456789123456,Produto C,2
-789123456789,Produto D,1
-321654987321,Produto E,4`;
+789123456789,Produto Alpha,3
+456789123456,Produto Beta,5
+123456789012,Produto Gama,2
+987654321098,Produto Delta,1
+321654987321,Produto Épsilon,4`;
             
             state.products = parseCsv(testData);
             state.scannedProducts = [];
             saveState();
             updateProductList();
-            showToast('Dados de teste carregados com sucesso');
+            showToast('Dados de teste carregados');
         }
 
         async function startCamera() {
@@ -457,7 +444,7 @@
                         handleScannedCode(result.text);
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Erro no scanner:', err);
+                        console.error('Erro no leitor:', err);
                     }
                 });
             } catch (error) {
@@ -497,25 +484,31 @@
             const product = state.products.find(p => p.code === code);
             
             if (product) {
+                // Verifica se já atingiu a quantidade esperada
                 if (product.scannedQty >= product.expectedQty) {
-                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
+                    showToast(`❌ ${product.name} já completado (${product.scannedQty}/${product.expectedQty})`);
                     playErrorSound();
                     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
                     return;
                 }
                 
-                product.scannedQty = (product.scannedQty || 0) + 1;
+                // Atualiza a quantidade escaneada
+                product.scannedQty += 1;
                 state.scannedProducts.push(code);
                 saveState();
                 updateProductList();
                 playBeep();
                 
+                // Verifica se completou
                 if (product.scannedQty === product.expectedQty) {
-                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
+                    showToast(`✅ ${product.name} completado!`);
+                } else {
+                    showToast(`✔ ${product.name} escaneado (${product.scannedQty}/${product.expectedQty})`);
                 }
             } else {
+                // Produto não encontrado
                 playErrorSound();
-                showToast('⚠️ Produto não encontrado na lista');
+                showToast('⚠️ Código não encontrado na lista');
                 if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             }
         }
@@ -524,12 +517,14 @@
             const productList = document.getElementById('productList');
             const noProducts = document.getElementById('noProducts');
             
+            // Calcula totais
             const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
             const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
             const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
             const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length;
             const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
 
+            // Atualiza a lista de produtos
             if (state.products.length > 0) {
                 noProducts.classList.add('hidden');
                 productList.classList.remove('hidden');
@@ -568,6 +563,7 @@
                 productList.classList.add('hidden');
             }
             
+            // Atualiza estatísticas
             document.getElementById('scannedCount').textContent = scannedQty;
             document.getElementById('expectedCount').textContent = totalQty;
             document.getElementById('okCount').textContent = okCount;
@@ -577,84 +573,22 @@
             document.getElementById('progressBar').style.width = `${progressPercent}%`;
             document.getElementById('progressPercent').textContent = `${progressPercent}%`;
             
+            // Altera a cor da barra de progresso
             const progressBar = document.getElementById('progressBar');
             progressBar.className = 'progress-bar';
             
             if (progressPercent === 100 && problemCount === 0) {
-                progressBar.classList.add('bg-green-500');
+                progressBar.style.backgroundColor = '#10b981'; // Verde
             } else if (progressPercent === 100) {
-                progressBar.classList.add('bg-yellow-500');
+                progressBar.style.backgroundColor = '#f59e0b'; // Amarelo
             } else {
-                progressBar.classList.add('bg-red-500');
+                progressBar.style.backgroundColor = '#ef4444'; // Vermelho
             }
         }
 
         function saveState() {
             localStorage.setItem('products', JSON.stringify(state.products));
             localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
-        }
-
-        async function exportAsImage() {
-            if (state.products.length === 0) {
-                showToast('Nenhum produto carregado para exportar');
-                return;
-            }
-
-            try {
-                showToast('Gerando imagem...');
-                
-                const exportElement = document.createElement('div');
-                exportElement.className = 'export-container';
-                exportElement.style.background = 'white';
-                exportElement.style.padding = '20px';
-                exportElement.style.borderRadius = '8px';
-                exportElement.style.maxWidth = '800px';
-                exportElement.style.margin = '0 auto';
-                
-                const title = document.createElement('h1');
-                title.textContent = 'Relatório de Inventário';
-                title.style.textAlign = 'center';
-                title.style.marginBottom = '16px';
-                title.style.fontSize = '1.5rem';
-                exportElement.appendChild(title);
-                
-                const date = document.createElement('p');
-                date.textContent = new Date().toLocaleString();
-                date.style.textAlign = 'center';
-                date.style.marginBottom = '24px';
-                date.style.color = '#666';
-                exportElement.appendChild(date);
-                
-                const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
-                progressSection.style.marginBottom = '24px';
-                exportElement.appendChild(progressSection);
-                
-                const productList = document.getElementById('productList').cloneNode(true);
-                productList.style.maxHeight = 'none';
-                productList.style.overflow = 'visible';
-                exportElement.appendChild(productList);
-                
-                document.body.appendChild(exportElement);
-                
-                const canvas = await html2canvas(exportElement, {
-                    scale: 2,
-                    logging: false,
-                    useCORS: true,
-                    allowTaint: true
-                });
-                
-                document.body.removeChild(exportElement);
-                
-                const link = document.createElement('a');
-                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                showToast('Imagem exportada com sucesso');
-            } catch (error) {
-                console.error('Erro ao exportar imagem:', error);
-                showToast('Erro ao gerar imagem');
-            }
         }
 
         function clearAll() {
@@ -669,7 +603,7 @@
                 document.getElementById('barcodeInput').value = '';
                 updateProductList();
                 
-                showToast('Todos os dados foram limpos');
+                showToast('Dados limpos com sucesso');
             }
         }
 
