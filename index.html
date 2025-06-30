@@ -266,7 +266,29 @@
         .toast.show {
             opacity: 1;
         }
+        
+        #videoContainer.video-flutuante {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40vw;
+            max-width: 350px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            z-index: 1001;
+            border: 2px solid #fff;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0;
+        }
 
+        #videoContainer.video-flutuante #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
         @media (max-width: 640px) {
             .container {
                 padding: 8px;
@@ -279,6 +301,15 @@
 
             .actions-container button {
                 width: 100%;
+            }
+
+            #videoContainer.video-flutuante {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                width: calc(100% - 16px);
+                max-width: none;
+                aspect-ratio: 4 / 3;
             }
         }
     </style>
@@ -387,12 +418,10 @@
             updateProductList();
         });
 
-        // --- CÓDIGO CORRIGIDO ---
         function initEventListeners() {
             document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
             document.getElementById('loadTestData').addEventListener('click', loadTestData);
             document.getElementById('startCamera').addEventListener('click', startCamera);
-            // O listener para 'takePhoto' foi removido pois o escaneamento agora é contínuo
             document.getElementById('stopCamera').addEventListener('click', stopCamera);
             document.getElementById('addProduct').addEventListener('click', addProductManually);
             document.getElementById('exportImage').addEventListener('click', exportAsImage);
@@ -443,35 +472,32 @@
             showToast('Dados de teste carregados com sucesso');
         }
 
-        // --- FUNÇÃO STARTCAMERA CORRIGIDA ---
         async function startCamera() {
             try {
-                // Prepara a interface, escondendo e mostrando os botões corretos
-                document.getElementById('videoContainer').classList.remove('hidden');
+                const videoContainer = document.getElementById('videoContainer');
+                
+                videoContainer.classList.add('video-flutuante');
+                videoContainer.classList.remove('hidden');
+
                 document.getElementById('startCamera').classList.add('hidden');
                 document.getElementById('stopCamera').classList.remove('hidden');
-                // Garante que o botão de foto manual (agora obsoleto) esteja escondido
                 document.getElementById('takePhoto').classList.add('hidden');
 
                 state.codeReader = new ZXing.BrowserMultiFormatReader();
                 const video = document.getElementById('video');
 
-                // Inicia o processo de escaneamento contínuo
-                state.codeReader.decodeFromConstraints({
+                // Adicionado 'await' para esperar a conclusão da inicialização da câmera.
+                await state.codeReader.decodeFromConstraints({
                     video: {
                         facingMode: 'environment',
                         width: { ideal: 1280 },
                         height: { ideal: 720 }
                     }
                 }, video, (result, err) => {
-                    // Esta função (callback) será chamada para cada quadro de vídeo
                     if (result) {
-                        // Se um código for encontrado com sucesso
                         handleScannedCode(result.text);
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
-                        // Se ocorrer um erro que NÃO SEJA 'NotFoundException'
-                        // (NotFoundException é normal e esperado quando nenhum código está na tela)
                         console.error('Erro de decodificação:', err);
                         showToast('Erro ao ler o código.');
                     }
@@ -486,24 +512,22 @@
             }
         }
         
-        // --- FUNÇÃO TAKEPHOTOANDSCAN REMOVIDA, POIS NÃO É MAIS NECESSÁRIA ---
-
-        // --- FUNÇÃO STOPCAMERA CORRIGIDA ---
         function stopCamera() {
             if (state.codeReader) {
-                // Interrompe o loop de decodificação contínua e libera a câmera
                 state.codeReader.reset();
                 state.codeReader = null;
             }
             
-            // Redefine a interface do usuário para o estado inicial
-            document.getElementById('videoContainer').classList.add('hidden');
+            const videoContainer = document.getElementById('videoContainer');
+            
+            videoContainer.classList.remove('video-flutuante');
+            videoContainer.classList.add('hidden');
+
             document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('takePhoto').classList.add('hidden'); // Mantém oculto
+            document.getElementById('takePhoto').classList.add('hidden');
             document.getElementById('stopCamera').classList.add('hidden');
             showToast('Câmera parada.');
         }
-
 
         function addProductManually() {
             const codeInput = document.getElementById('barcodeInput');
@@ -548,7 +572,7 @@
             const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
             const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
             const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
-            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty && p.scannedQty > 0).length;
+            const problemCount = state.products.filter(p => p.scannedQty > 0 && p.scannedQty !== p.expectedQty).length;
             const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
 
             if (state.products.length > 0) {
@@ -557,8 +581,6 @@
 
                 productList.innerHTML = state.products.map(product => {
                     const isComplete = product.scannedQty === product.expectedQty;
-                    const isOver = product.scannedQty > product.expectedQty;
-                    const isUnder = product.scannedQty < product.expectedQty && product.scannedQty > 0;
                     
                     let statusClass = '';
                     let statusIcon = '';
@@ -573,7 +595,6 @@
                         statusClass = 'status-error';
                         statusIcon = '(Faltando)';
                     }
-
 
                     return `
                         <li class="${isComplete ? 'product-complete' : ''}">
