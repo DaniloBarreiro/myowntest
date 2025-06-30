@@ -316,27 +316,73 @@
                 codeInput.value = ''; [cite: 106]
             }
         }
-        function handleScannedCode(code) {
-            const product = state.products.find(p => p.code === code); [cite: 106]
-            if (product) { [cite: 107]
-                if (product.scannedQty >= product.expectedQty) { [cite: 107]
-                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`); [cite: 107]
-                    playErrorSound(); [cite: 108]
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]); [cite: 108]
-                    return;
-                }
-                product.scannedQty = (product.scannedQty || 0) + 1; [cite: 108]
-                state.scannedProducts.push(code); [cite: 109]
-                saveState(); [cite: 109]
-                updateProductList(); [cite: 109]
-                playBeep(); [cite: 109]
-                if (product.scannedQty === product.expectedQty) { [cite: 109]
-                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`); [cite: 110]
-                }
+async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Lendo arquivo...');
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    state.products = parseCsv(text);
+                    state.scannedProducts = [];
+                    saveState();
+                    updateProductList();
+                    showToast('Lista CSV carregada com sucesso!');
+                };
+                reader.readAsText(file);
+
+            } else if (file.name.toLowerCase().endsWith('.pdf')) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const pdfData = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                        let fullText = '';
+                        const yThreshold = 5; // Pequena tolerância para a mesma linha
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            
+                            // Ordena os itens de texto por posição vertical e depois horizontal
+                            const sortedItems = textContent.items.sort((a, b) => {
+                                if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
+                                    return b.transform[5] - a.transform[5]; // Ordena por Y (vertical)
+                                }
+                                return a.transform[4] - b.transform[4]; // Ordena por X (horizontal)
+                            });
+
+                            let lastY = -1;
+                            let line = '';
+                            for (const item of sortedItems) {
+                                if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
+                                    // Se a posição Y mudou significativamente, é uma nova linha
+                                    fullText += line.trim() + '\n';
+                                    line = '';
+                                }
+                                line += item.str + ' ';
+                                lastY = item.transform[5];
+                            }
+                            fullText += line.trim() + '\n'; // Adiciona a última linha da página
+                        }
+                        
+                        state.products = parseCsv(fullText);
+                        state.scannedProducts = [];
+                        saveState();
+                        updateProductList();
+                        showToast('Lista PDF carregada com sucesso!');
+
+                    } catch (error) {
+                        console.error("Erro ao ler PDF:", error);
+                        showToast("Erro: Não foi possível ler o arquivo PDF.");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             } else {
-                playErrorSound(); [cite: 110]
-                showToast('⚠️ Produto não encontrado na lista'); [cite: 111]
-                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]); [cite: 111]
+                showToast("Formato de arquivo não suportado. Use CSV ou PDF.");
             }
         }
         function updateProductList() {
