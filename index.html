@@ -206,6 +206,8 @@
         }
         .code-highlight {
             position: absolute;
+            top: 10px;
+            left: 10px;
             border: 2px solid #10b981;
             background-color: rgba(16, 185, 129, 0.3);
             color: white;
@@ -238,6 +240,14 @@
         .toast.show {
             opacity: 1;
         }
+
+        #cameraError {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 12px;
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 8px;
@@ -278,6 +288,7 @@
                 <div class="camera-overlay"></div>
                 <div id="codeOverlay" class="hidden"></div>
             </div>
+            <div id="cameraError" class="hidden">❌ Erro ao acessar a câmera. Verifique permissões ou reinicie o navegador.</div>
             <div class="flex items-center">
                 <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)" 
                        onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
@@ -375,10 +386,10 @@
             return text.split('\n')
                 .slice(1)
                 .map(line => {
-                    const [code, name, expectedQty] = line.split(',');
+                    const [code, name, expectedQty] = line.trim().split(',');
                     return {
-                        code: (code || '').trim(),
-                        name: (name || '').trim(),
+                        code: code || '',
+                        name: name || '',
                         expectedQty: parseInt(expectedQty) || 1,
                         scannedQty: 0
                     };
@@ -403,10 +414,13 @@
         async function startCamera() {
             try {
                 const video = document.getElementById('video');
-                const overlay = document.getElementById('codeOverlay');
+                const codeOverlay = document.getElementById('codeOverlay');
+                const cameraError = document.getElementById('cameraError');
+
                 document.getElementById('videoContainer').classList.remove('hidden');
                 document.getElementById('startCamera').classList.add('hidden');
                 document.getElementById('stopCamera').classList.remove('hidden');
+                cameraError.classList.add('hidden');
 
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -415,33 +429,45 @@
                         height: { ideal: 720 }
                     }
                 });
+
+                if (!stream) throw new Error("Nenhum fluxo de vídeo retornado.");
+
                 video.srcObject = stream;
                 await video.play();
 
                 state.codeReader = new ZXing.BrowserMultiFormatReader();
 
-                // Inicia verificação periódica
+                // Verificação periódica a cada 1 segundo
                 verificationInterval = setInterval(async () => {
                     try {
                         const result = await state.codeReader.decodeOnceFromVideoElement(video);
                         if (result) {
-                            const code = result.text;
-                            overlay.textContent = code;
-                            overlay.classList.remove('hidden');
-                            overlay.style.top = '10px';
-                            overlay.style.left = '10px';
-                            overlay.className = 'code-highlight';
-                            setTimeout(() => overlay.classList.add('hidden'), 2000);
-
-                            handleScannedCode(code);
+                            codeOverlay.textContent = result.text;
+                            codeOverlay.className = 'code-highlight';
+                            setTimeout(() => codeOverlay.classList.add('hidden'), 2000);
+                            handleScannedCode(result.text);
                         }
                     } catch (err) {
                         // Ignora erros silenciosos
                     }
                 }, 1000);
+
             } catch (error) {
                 console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
+                let message = 'Erro desconhecido ao tentar acessar a câmera.';
+                if (error.name === 'NotAllowedError') {
+                    message = 'Acesso à câmera negado. Permita o uso da câmera nas configurações do navegador.';
+                } else if (error.name === 'NotFoundError') {
+                    message = 'Nenhuma câmera encontrada. Verifique se há câmeras disponíveis.';
+                } else if (error.name === 'NotReadableError') {
+                    message = 'A câmera já está em uso por outro app ou aba.';
+                } else if (error.name === 'OverconstrainedError') {
+                    message = 'Não foi possível encontrar uma câmera com as restrições definidas.';
+                } else if (error.name === 'SecurityError' || error.name === 'PermissionDeniedError') {
+                    message = 'Acesso à câmera bloqueado por segurança. Use HTTPS.';
+                }
+                document.getElementById('cameraError').textContent = message;
+                document.getElementById('cameraError').classList.remove('hidden');
                 stopCamera();
             }
         }
@@ -509,6 +535,7 @@
             const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
             const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length;
             const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+
             if (state.products.length > 0) {
                 noProducts.classList.add('hidden');
                 productList.classList.remove('hidden');
@@ -542,6 +569,7 @@
                 noProducts.classList.remove('hidden');
                 productList.classList.add('hidden');
             }
+
             document.getElementById('scannedCount').textContent = scannedQty;
             document.getElementById('expectedCount').textContent = totalQty;
             document.getElementById('okCount').textContent = okCount;
@@ -550,6 +578,7 @@
             document.getElementById('totalCount').textContent = totalQty;
             document.getElementById('progressBar').style.width = `${progressPercent}%`;
             document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+
             const progressBar = document.getElementById('progressBar');
             progressBar.className = 'progress-bar';
             if (progressPercent === 100 && problemCount === 0) {
@@ -580,25 +609,30 @@
                 exportElement.style.borderRadius = '8px';
                 exportElement.style.maxWidth = '800px';
                 exportElement.style.margin = '0 auto';
+
                 const title = document.createElement('h1');
                 title.textContent = 'Relatório de Inventário';
                 title.style.textAlign = 'center';
                 title.style.marginBottom = '16px';
                 title.style.fontSize = '1.5rem';
                 exportElement.appendChild(title);
+
                 const date = document.createElement('p');
                 date.textContent = new Date().toLocaleString();
                 date.style.textAlign = 'center';
                 date.style.marginBottom = '24px';
                 date.style.color = '#666';
                 exportElement.appendChild(date);
+
                 const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
                 progressSection.style.marginBottom = '24px';
                 exportElement.appendChild(progressSection);
+
                 const productList = document.getElementById('productList').cloneNode(true);
                 productList.style.maxHeight = 'none';
                 productList.style.overflow = 'visible';
                 exportElement.appendChild(productList);
+
                 document.body.appendChild(exportElement);
                 const canvas = await html2canvas(exportElement, {
                     scale: 2,
@@ -607,6 +641,7 @@
                     allowTaint: true
                 });
                 document.body.removeChild(exportElement);
+
                 const link = document.createElement('a');
                 link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
                 link.href = canvas.toDataURL('image/png');
