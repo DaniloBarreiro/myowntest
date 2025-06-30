@@ -157,7 +157,7 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const text = e.target.result;
-                    state.products = parseCsv(text);
+                    state.products = parseProductData(text);
                     state.scannedProducts = [];
                     saveState();
                     updateProductList();
@@ -171,16 +171,33 @@
                         const pdfData = new Uint8Array(e.target.result);
                         const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
                         let fullText = '';
+                        const yThreshold = 5;
 
                         for (let i = 1; i <= pdf.numPages; i++) {
                             const page = await pdf.getPage(i);
                             const textContent = await page.getTextContent();
-                            // Juntamos os textos, mas adicionamos quebras de linha para simular um arquivo de texto.
-                            const pageText = textContent.items.map(item => item.str).join(' ');
-                            fullText += pageText + '\n';
+                            
+                            const sortedItems = textContent.items.sort((a, b) => {
+                                if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
+                                    return b.transform[5] - a.transform[5];
+                                }
+                                return a.transform[4] - b.transform[4];
+                            });
+
+                            let lastY = -1;
+                            let line = '';
+                            for (const item of sortedItems) {
+                                if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
+                                    fullText += line.trim() + '\n';
+                                    line = '';
+                                }
+                                line += item.str + ' ';
+                                lastY = item.transform[5];
+                            }
+                            fullText += line.trim() + '\n';
                         }
                         
-                        state.products = parseCsv(fullText);
+                        state.products = parseProductData(fullText);
                         state.scannedProducts = [];
                         saveState();
                         updateProductList();
@@ -196,22 +213,40 @@
                 showToast("Formato de arquivo não suportado. Use CSV ou PDF.");
             }
         }
-
-        function parseCsv(text) {
-            // Adicionamos uma verificação para ignorar a primeira linha se for o cabeçalho padrão.
+        
+        // --- NOVA FUNÇÃO DE PARSE UNIVERSAL ---
+        function parseProductData(text) {
             const lines = text.split('\n');
-            const dataLines = (lines[0] || '').toLowerCase().includes('code,name,expectedqty') ? lines.slice(1) : lines;
+            const dataLines = (lines[0] || '').toLowerCase().includes('código') || (lines[0] || '').toLowerCase().includes('code') ? lines.slice(1) : lines;
 
             return dataLines.map(line => {
-                const [code, name, expectedQty] = line.split(',');
+                line = line.trim();
+                if (!line) return null;
+
+                let code, name, expectedQty;
+
+                if (line.includes(',')) {
+                    [code, name, expectedQty] = line.split(',').map(item => item.trim());
+                } else {
+                    const parts = line.split(/\s+/);
+                    if (parts.length >= 3) {
+                        code = parts.shift();
+                        expectedQty = parts.pop();
+                        name = parts.join(' ');
+                    } else {
+                        return null;
+                    }
+                }
+
                 return {
-                    code: (code || '').trim(),
-                    name: (name || '').trim(),
+                    code: code || '',
+                    name: name || '',
                     expectedQty: parseInt(expectedQty) || 1,
                     scannedQty: 0
                 };
-            }).filter(p => p.code && p.name);
+            }).filter(p => p && p.code && p.name);
         }
+
         function loadTestData() {
             const testData = `code,name,expectedQty
 123456789012,Produto A,5
@@ -219,12 +254,13 @@
 456789123456,Produto C,2
 789123456789,Produto D,1
 321654987321,Produto E,4`;
-            state.products = parseCsv(testData);
+            state.products = parseProductData(testData); // Usando a nova função
             state.scannedProducts = [];
             saveState();
             updateProductList();
             showToast('Dados de teste carregados com sucesso');
         }
+
         async function startCamera() {
             try {
                 const videoContainer = document.getElementById('videoContainer');
@@ -290,18 +326,20 @@
             const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
             const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
             const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
-            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty && p.scannedQty > 0).length;
+            const problemCount = state.products.filter(p => p.scannedQty > 0 && p.scannedQty !== p.expectedQty).length;
             const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
             if (state.products.length > 0) {
                 noProducts.classList.add('hidden');
                 productList.classList.remove('hidden');
                 productList.innerHTML = state.products.map(product => {
                     const isComplete = product.scannedQty === product.expectedQty;
-                    let statusClass = 'status-ok';
-                    let statusIcon = '✓ (Completo)';
-                    if (product.scannedQty > product.expectedQty) {
+                    let statusClass = '';
+                    let statusIcon = '';
+                    if(product.scannedQty === product.expectedQty) {
+                        statusClass = 'status-ok'; statusIcon = '✓ (Completo)';
+                    } else if (product.scannedQty > product.expectedQty) {
                         statusClass = 'status-warning'; statusIcon = '⚠️ (Excesso)';
-                    } else if (product.scannedQty < product.expectedQty) {
+                    } else if (product.scannedQty > 0) {
                         statusClass = 'status-error'; statusIcon = '(Faltando)';
                     }
                     return `<li class="${isComplete ? 'product-complete' : ''}"> <div class="product-info"> <div class="product-name">${product.name}</div> <div class="product-code">${product.code}</div> </div> <span class="product-status ${statusClass}"> ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon} </span> </li>`;
