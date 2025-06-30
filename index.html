@@ -3,658 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventário Mobile - Leitor de Códigos</title>
-    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+    <title>Leitor de Códigos - Inventário</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/dist/html5-qrcode.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f3f4f6;
-            color: #111827;
-            line-height: 1.5;
-            padding: 16px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        section {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        
         h1, h2 {
-            font-weight: 600;
-            color: #111827;
-        }
-        
-        h1 {
-            font-size: 1.5rem;
             text-align: center;
-            margin-bottom: 4px;
+            color: #333;
         }
-        
-        h2 {
-            font-size: 1.125rem;
-            margin-bottom: 12px;
-        }
-        
-        .subtitle {
-            color: #6b7280;
-            font-size: 0.875rem;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        
-        input[type="text"],
-        input[type="file"] {
+        #scanner {
             width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            margin-bottom: 12px;
+            max-width: 400px;
+            height: 300px;
+            border: 2px solid #ccc;
+            margin-bottom: 20px;
+            background-color: #000;
         }
-        
-        button {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: none;
+        .button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-        
-        .btn-primary {
-            background-color: #3b82f6;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
             color: white;
         }
-        
-        .btn-primary:hover {
-            background-color: #2563eb;
+        .button:hover {
+            background-color: #0056b3;
         }
-        
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
+        .button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
         }
-        
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-        
-        .btn-success {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #059669;
-        }
-        
-        .btn-warning {
-            background-color: #f59e0b;
-            color: white;
-        }
-        
-        .btn-warning:hover {
-            background-color: #d97706;
-        }
-        
-        .flex {
-            display: flex;
-        }
-        
-        .justify-between {
-            justify-content: space-between;
-        }
-        
-        .items-center {
-            align-items: center;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        #productList {
-            max-height: 300px;
-            overflow-y: auto;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            margin: 8px 0;
-        }
-        
-        #productList li {
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        #productList li:last-child {
-            border-bottom: none;
-        }
-        
-        .product-info {
-            flex: 1;
-            overflow: hidden;
-        }
-        
-        .product-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .product-code {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-        
-        .product-status {
-            font-weight: 500;
-            margin-left: 8px;
-            white-space: nowrap;
-        }
-        
-        .status-ok {
-            color: #10b981;
-        }
-        
-        .status-warning {
-            color: #f59e0b;
-        }
-        
-        .status-error {
-            color: #ef4444;
-        }
-        
-        .product-complete {
-            opacity: 0.7;
-            background-color: rgba(16, 185, 129, 0.1);
-        }
-        
         .progress-container {
             width: 100%;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            height: 8px;
-            margin-bottom: 8px;
+            max-width: 400px;
+            margin: 20px 0;
         }
-        
         .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
             height: 100%;
-            border-radius: 4px;
-            background-color: #10b981;
+            background-color: #28a745;
+            width: 0%;
             transition: width 0.3s;
         }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .stats div {
             text-align: center;
-            margin-top: 12px;
+            flex: 1;
         }
-        
-        .stat-value {
-            font-weight: 600;
-            font-size: 1.25rem;
-        }
-        
-        #videoContainer {
-            position: relative;
-            margin-bottom: 16px;
-        }
-        
-        #video {
+        #product-list {
             width: 100%;
-            border-radius: 8px;
+            max-width: 400px;
+            margin-top: 20px;
         }
-        
-        .camera-overlay {
-            position: absolute;
-            inset: 0;
-            border: 4px solid rgba(59, 130, 246, 0.5);
-            pointer-events: none;
+        .product-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1f2937;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            font-size: 0.875rem;
-        }
-        
-        .toast.show {
-            opacity: 1;
-        }
-        
-        @media (max-width: 640px) {
-            .container {
-                padding: 8px;
-            }
-            
-            .actions-container {
-                flex-direction: column;
-                gap: 8px;
-            }
-            
-            .actions-container button {
-                width: 100%;
-            }
+        .ok { color: green; }
+        .problem { color: red; }
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            #scanner { height: 200px; }
+            .button { font-size: 14px; padding: 8px 16px; }
         }
     </style>
 </head>
 <body>
-    <div id="toast" class="toast"></div>
+    <h1>📱 Leitor de Códigos - Inventário</h1>
+    <p>Escaneie códigos de barras ou QR codes para verificar os produtos</p>
 
-    <div class="container">
-        <header class="text-center">
-            <h1>📱 Leitor de Códigos - Inventário</h1>
-            <p class="subtitle">Escaneie códigos de barras ou QR codes para verificar os produtos</p>
-        </header>
+    <div>
+        <input type="file" id="csvFile" accept=".csv">
+        <p>Formato: Código,Nome,Quantidade (um produto por linha)</p>
+    </div>
 
-        <section>
-            <label for="csvInput" class="block">Carregar Lista de Produtos (CSV)</label>
-            <input id="csvInput" type="file" accept=".csv">
-            <p class="text-sm">Formato: Código,Nome,Quantidade (um produto por linha)</p>
-        </section>
+    <div>
+        <button class="button" onclick="startScanner()">📷 Ativar Leitor</button>
+        <button class="button" onclick="stopScanner()" disabled>⏹️ Desativar Leitor</button>
+    </div>
 
-        <section>
-            <div class="flex justify-between mb-4">
-                <button id="startCamera" class="btn-primary">
-                    📷 Ativar Leitor
-                </button>
-                <button id="stopCamera" class="btn-danger hidden">
-                    ⏹️ Desativar Leitor
-                </button>
-            </div>
-            <div id="videoContainer" class="hidden">
-                <video id="video" muted playsinline></video>
-                <div class="camera-overlay"></div>
-            </div>
-            <div class="flex items-center">
-                <input id="barcodeInput" type="text" placeholder="Digite o código manualmente" 
-                       onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
-                <button id="addProduct" class="btn-success ml-2">
-                    ➕ Adicionar
-                </button>
-            </div>
-        </section>
+    <div id="scanner"></div>
 
-        <section>
-            <h2>Progresso da Verificação</h2>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
-            </div>
-            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span id="totalCount">0</span>)</p>
-            <div class="stats-grid">
-                <div>
-                    <p class="stat-value"><span id="scannedCount">0</span></p>
-                    <p>Escaneados</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="expectedCount">0</span></p>
-                    <p>Esperados</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="okCount">0</span> ✓</p>
-                    <p>OK</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="problemCount">0</span> ⚠️</p>
-                    <p>Problemas</p>
-                </div>
-            </div>
-        </section>
+    <div>
+        <input type="text" id="manualCode" placeholder="Digite o código manualmente">
+        <button class="button" onclick="addManualCode()">➕ Adicionar</button>
+    </div>
 
-        <section>
-            <h2>📦 Produtos Verificados</h2>
-            <div id="noProducts" class="text-center py-4">
-                <p class="text-xl">📦</p>
-                <p>Nenhum produto escaneado ainda</p>
-            </div>
-            <ul id="productList" class="hidden"></ul>
-        </section>
+    <h2>Progresso da Verificação</h2>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="progressText">0% concluído (0/0)</div>
+        <div class="stats">
+            <div><span id="scannedCount">0</span><br>Escaneados</div>
+            <div><span id="expectedCount">0</span><br>Esperados</div>
+            <div><span id="okCount">0</span> ✓<br>OK</div>
+            <div><span id="problemCount">0</span> ⚠️<br>Problemas</div>
+        </div>
+    </div>
 
-        <section class="actions-container flex justify-between gap-2">
-            <button id="loadTestData" class="btn-warning">
-                📊 Dados de Teste
-            </button>
-            <button id="clearAll" class="btn-danger">
-                🗑️ Limpar Tudo
-            </button>
-        </section>
+    <h2>📦 Produtos Verificados</h2>
+    <div id="product-list">
+        <div class="product-item">📦 Nenhum produto escaneado ainda</div>
+    </div>
+
+    <div>
+        <button class="button" onclick="loadTestData()">📊 Dados de Teste</button>
+        <button class="button" onclick="clearAll()">🗑️ Limpar Tudo</button>
     </div>
 
     <script>
-        const state = {
-            products: JSON.parse(localStorage.getItem('products')) || [],
-            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
-            codeReader: null,
-            audioContext: null
-        };
+        let html5QrcodeScanner = null;
+        let products = [];
+        let scannedCodes = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initEventListeners();
-            updateProductList();
-        });
-
-        function initEventListeners() {
-            document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
-            document.getElementById('loadTestData').addEventListener('click', loadTestData);
-            document.getElementById('startCamera').addEventListener('click', startCamera);
-            document.getElementById('stopCamera').addEventListener('click', stopCamera);
-            document.getElementById('addProduct').addEventListener('click', addProductManually);
-            document.getElementById('clearAll').addEventListener('click', clearAll);
+        function startScanner() {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "scanner",
+                { fps: 10, qrbox: { width: 250, height: 250 }, formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ]},
+                false
+            );
+            html5QrcodeScanner.render(onScanSuccess, onScanError);
+            document.querySelector('button[onclick="startScanner()"]').disabled = true;
+            document.querySelector('button[onclick="stopScanner()"]').disabled = false;
         }
 
-        function handleCsvUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                state.products = parseCsv(text);
-                state.scannedProducts = [];
-                saveState();
-                updateProductList();
-                showToast('Lista de produtos carregada com sucesso');
-            };
-            reader.readAsText(file);
-        }
-
-        function parseCsv(text) {
-            return text.split('\n')
-                .slice(1)
-                .map(line => {
-                    const [code, name, expectedQty] = line.split(',');
-                    return {
-                        code: (code || '').trim(),
-                        name: (name || '').trim(),
-                        expectedQty: parseInt(expectedQty) || 1,
-                        scannedQty: 0
-                    };
-                })
-                .filter(p => p.code && p.name);
-        }
-
-        function loadTestData() {
-            const testData = `code,name,expectedQty
-789123456789,Produto Alpha,3
-456789123456,Produto Beta,5
-123456789012,Produto Gama,2
-987654321098,Produto Delta,1
-321654987321,Produto Épsilon,4`;
-            
-            state.products = parseCsv(testData);
-            state.scannedProducts = [];
-            saveState();
-            updateProductList();
-            showToast('Dados de teste carregados');
-        }
-
-        async function startCamera() {
-            try {
-                const video = document.getElementById('video');
-                document.getElementById('videoContainer').classList.remove('hidden');
-                document.getElementById('startCamera').classList.add('hidden');
-                document.getElementById('stopCamera').classList.remove('hidden');
-
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                });
-                video.srcObject = stream;
-                video.play();
-
-                state.codeReader = new ZXing.BrowserMultiFormatReader();
-                state.codeReader.decodeFromVideoElement(video, (result, err) => {
-                    if (result) {
-                        handleScannedCode(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Erro no leitor:', err);
-                    }
-                });
-            } catch (error) {
-                console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
-                stopCamera();
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                document.querySelector('button[onclick="startScanner()"]').disabled = false;
+                document.querySelector('button[onclick="stopScanner()"]').disabled = true;
             }
         }
 
-        function stopCamera() {
-            if (state.codeReader) {
-                state.codeReader.reset();
-                state.codeReader = null;
-            }
-            
-            const video = document.getElementById('video');
-            if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
-            }
-            
-            document.getElementById('videoContainer').classList.add('hidden');
-            document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('stopCamera').classList.add('hidden');
+        function onScanSuccess(decodedText, decodedResult) {
+            processCode(decodedText);
         }
 
-        function addProductManually() {
-            const codeInput = document.getElementById('barcodeInput');
-            const code = codeInput.value.trim();
-            
-            if (code) {
-                handleScannedCode(code);
-                codeInput.value = '';
-            }
+        function onScanError(error) {
+            console.error(`Erro ao escanear: ${error}`);
         }
 
-        function handleScannedCode(code) {
-            const product = state.products.find(p => p.code === code);
-            
+        function processCode(code) {
+            if (scannedCodes.includes(code)) return; // Evita duplicatas
+            scannedCodes.push(code);
+
+            const product = products.find(p => p.code === code);
+            const productList = document.getElementById('product-list');
+            const productItem = document.createElement('div');
+            productItem.className = 'product-item';
             if (product) {
-                // Verifica se já atingiu a quantidade esperada
-                if (product.scannedQty >= product.expectedQty) {
-                    showToast(`❌ ${product.name} já completado (${product.scannedQty}/${product.expectedQty})`);
-                    playErrorSound();
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-                    return;
-                }
-                
-                // Atualiza a quantidade escaneada
-                product.scannedQty += 1;
-                state.scannedProducts.push(code);
-                saveState();
-                updateProductList();
-                playBeep();
-                
-                // Verifica se completou
-                if (product.scannedQty === product.expectedQty) {
-                    showToast(`✅ ${product.name} completado!`);
-                } else {
-                    showToast(`✔ ${product.name} escaneado (${product.scannedQty}/${product.expectedQty})`);
-                }
+                productItem.innerHTML = `📦 ${product.name} (Código: ${code}, Quantidade: ${product.quantity}) <span class="ok">✓ OK</span>`;
             } else {
-                // Produto não encontrado
-                playErrorSound();
-                showToast('⚠️ Código não encontrado na lista');
-                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                productItem.innerHTML = `📦 Código: ${code} <span class="problem">⚠️ Não encontrado</span>`;
+            }
+            productList.innerHTML = '';
+            scannedCodes.forEach(c => {
+                const p = products.find(prod => prod.code === c);
+                const item = document.createElement('div');
+                item.className = 'product-item';
+                item.innerHTML = p
+                    ? `📦 ${p.name} (Código: ${c}, Quantidade: ${p.quantity}) <span class="ok">✓ OK</span>`
+                    : `📦 Código: ${c} <span class="problem">⚠️ Não encontrado</span>`;
+                productList.appendChild(item);
+            });
+            updateProgress();
+        }
+
+        function addManualCode() {
+            const manualCode = document.getElementById('manualCode').value.trim();
+            if (manualCode) {
+                processCode(manualCode);
+                document.getElementById('manualCode').value = '';
             }
         }
 
-        function updateProductList() {
-            const productList = document.getElementById('productList');
-            const noProducts = document.getElementById('noProducts');
-            
-            // Calcula totais
-            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
-            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
-            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
-            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length;
-            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+        function updateProgress() {
+            const scanned = scannedCodes.length;
+            const expected = products.length;
+            const okCount = scannedCodes.filter(code => products.some(p => p.code === code)).length;
+            const problemCount = scanned - okCount;
+            const progress = expected > 0 ? (scanned / expected) * 100 : 0;
 
-            // Atualiza a lista de produtos
-            if (state.products.length > 0) {
-                noProducts.classList.add('hidden');
-                productList.classList.remove('hidden');
-                
-                productList.innerHTML = state.products.map(product => {
-                    const isComplete = product.scannedQty === product.expectedQty;
-                    const isOver = product.scannedQty > product.expectedQty;
-                    const isUnder = product.scannedQty < product.expectedQty;
-                    
-                    let statusClass = 'status-ok';
-                    let statusIcon = '✓ (Completo)';
-                    
-                    if (isOver) {
-                        statusClass = 'status-warning';
-                        statusIcon = '⚠️ (Excesso)';
-                    } else if (isUnder) {
-                        statusClass = 'status-error';
-                        statusIcon = '⚠️ (Faltando)';
-                    }
-                    
-                    return `
-                        <li class="${isComplete ? 'product-complete' : ''}">
-                            <div class="product-info">
-                                <div class="product-name">${product.name}</div>
-                                <div class="product-code">${product.code}</div>
-                            </div>
-                            <span class="product-status ${statusClass}">
-                                ${product.scannedQty || 0}/${product.expectedQty}
-                                ${statusIcon}
-                            </span>
-                        </li>
-                    `;
-                }).join('');
-            } else {
-                noProducts.classList.remove('hidden');
-                productList.classList.add('hidden');
-            }
-            
-            // Atualiza estatísticas
-            document.getElementById('scannedCount').textContent = scannedQty;
-            document.getElementById('expectedCount').textContent = totalQty;
+            document.getElementById('scannedCount').textContent = scanned;
+            document.getElementById('expectedCount').textContent = expected;
             document.getElementById('okCount').textContent = okCount;
             document.getElementById('problemCount').textContent = problemCount;
-            document.getElementById('foundCount').textContent = scannedQty;
-            document.getElementById('totalCount').textContent = totalQty;
-            document.getElementById('progressBar').style.width = `${progressPercent}%`;
-            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-            
-            // Altera a cor da barra de progresso
-            const progressBar = document.getElementById('progressBar');
-            progressBar.className = 'progress-bar';
-            
-            if (progressPercent === 100 && problemCount === 0) {
-                progressBar.style.backgroundColor = '#10b981'; // Verde
-            } else if (progressPercent === 100) {
-                progressBar.style.backgroundColor = '#f59e0b'; // Amarelo
-            } else {
-                progressBar.style.backgroundColor = '#ef4444'; // Vermelho
-            }
+            document.getElementById('progressText').textContent = `${Math.round(progress)}% concluído (${scanned}/${expected})`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
         }
 
-        function saveState() {
-            localStorage.setItem('products', JSON.stringify(state.products));
-            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                products = text.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line)
+                    .map(line => {
+                        const [code, name, quantity] = line.split(',');
+                        return { code, name, quantity: parseInt(quantity) || 1 };
+                    });
+                updateProgress();
+            };
+            reader.readAsText(file);
+        });
+
+        function loadTestData() {
+            products = [
+                { code: '123456', name: 'Produto A', quantity: 10 },
+                { code: '789012', name: 'Produto B', quantity: 5 },
+                { code: '345678', name: 'Produto C', quantity: 8 }
+            ];
+            scannedCodes = [];
+            document.getElementById('product-list').innerHTML = '<div class="product-item">📦 Nenhum produto escaneado ainda</div>';
+            updateProgress();
         }
 
         function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
-                stopCamera();
-                state.products = [];
-                state.scannedProducts = [];
-                localStorage.removeItem('products');
-                localStorage.removeItem('scannedProducts');
-                
-                document.getElementById('csvInput').value = '';
-                document.getElementById('barcodeInput').value = '';
-                updateProductList();
-                
-                showToast('Dados limpos com sucesso');
-            }
-        }
-
-        function playBeep() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
-            
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.3);
-        }
-
-        function playErrorSound() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
-            
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.5);
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            products = [];
+            scannedCodes = [];
+            document.getElementById('product-list').innerHTML = '<div class="product-item">📦 Nenhum produto escaneado ainda</div>';
+            document.getElementById('csvFile').value = '';
+            stopScanner();
+            updateProgress();
         }
     </script>
 </body>
