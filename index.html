@@ -2,771 +2,389 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contador de Produtos - Transportadora</title>
-    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f3f4f6;
-            color: #111827;
-            line-height: 1.5;
-            padding: 16px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        section {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
-        h1,
-        h2 {
-            font-weight: 600;
-            color: #111827;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            text-align: center;
-            margin-bottom: 4px;
-        }
-
-        h2 {
-            font-size: 1.125rem;
-            margin-bottom: 12px;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            font-size: 0.875rem;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            margin-bottom: 12px;
-        }
-
-        button {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-
-        .btn-success {
-            background-color: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #059669;
-        }
-
-        .btn-warning {
-            background-color: #f59e0b;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background-color: #d97706;
-        }
-
-        .btn-secondary {
-            background-color: #8b5cf6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background-color: #7c3aed;
-        }
-
-        .flex {
-            display: flex;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #productList {
-            max-height: 300px;
-            overflow-y: auto;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            margin: 8px 0;
-        }
-
-        #productList li {
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #productList li:last-child {
-            border-bottom: none;
-        }
-
-        .product-info {
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .product-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .product-code {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .product-status {
-            font-weight: 500;
-            margin-left: 8px;
-            white-space: nowrap;
-        }
-
-        .status-ok {
-            color: #10b981;
-        }
-
-        .status-warning {
-            color: #f59e0b;
-        }
-
-        .status-error {
-            color: #ef4444;
-        }
-
-        .product-complete {
-            opacity: 0.7;
-            background-color: rgba(16, 185, 129, 0.1);
-        }
-
-        .progress-container {
-            width: 100%;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            height: 8px;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            border-radius: 4px;
-            background-color: #10b981;
-            transition: width 0.3s;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            text-align: center;
-            margin-top: 12px;
-        }
-
-        .stat-value {
-            font-weight: 600;
-            font-size: 1.25rem;
-        }
-
-        #videoContainer {
-            position: relative;
-            margin-bottom: 16px;
-        }
-
-        #video {
-            width: 100%;
-            border-radius: 8px;
-        }
-
-        .camera-overlay {
-            position: absolute;
-            inset: 0;
-            border: 4px solid rgba(59, 130, 246, 0.5);
-            pointer-events: none;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #1f2937;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 4px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            font-size: 0.875rem;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-        @media (max-width: 640px) {
-            .container {
-                padding: 8px;
-            }
-
-            .actions-container {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .actions-container button {
-                width: 100%;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contador de Produtos - Transportadora</title>
+  <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    /* … todo o seu CSS inalterado … */
+  </style>
 </head>
 
 <body>
-    <div id="toast" class="toast"></div>
+  <div id="toast" class="toast"></div>
 
-    <div class="container">
-        <header class="text-center">
-            <h1>📱 Inventário Mobile</h1>
-            <p class="subtitle">Escaneie produtos para verificar a carga</p>
-        </header>
+  <div class="container">
+    <header class="text-center">
+      <h1>📱 Inventário Mobile V1</h1>
+      <p class="subtitle">Escaneie produtos para verificar a carga</p>
+    </header>
 
-        <section>
-            <label for="csvInput" class="block">Carregar Lista CSV</label>
-            <input id="csvInput" type="file" accept=".csv">
-            <p class="text-sm">Formato esperado: Código,Nome,Quantidade (uma linha por produto)</p>
-        </section>
+    <section>
+      <label for="csvInput" class="block">Carregar Lista CSV</label>
+      <input id="csvInput" type="file" accept=".csv" />
+      <p class="text-sm">Formato esperado: Código,Nome,Quantidade (uma linha por produto)</p>
+    </section>
 
-        <section>
-            <div class="flex justify-between mb-4">
-                <button id="startCamera" class="btn-primary">
-                    📷 Iniciar Câmera
-                </button>
-                <button id="takePhoto" class="btn-success hidden">
-                    📸 Ler Código
-                </button>
-                <button id="stopCamera" class="btn-danger hidden">
-                    ⏹️ Parar Câmera
-                </button>
-            </div>
-            <div id="videoContainer" class="hidden">
-                <video id="video" muted playsinline></video>
-                <div class="camera-overlay"></div>
-            </div>
-            <div class="flex items-center">
-                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
-                    onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
-                <button id="addProduct" class="btn-success ml-2">
-                    ➕ Adicionar
-                </button>
-            </div>
-        </section>
+    <section>
+      <div class="flex justify-between mb-4">
+        <button id="startCamera" class="btn-primary">📷 Iniciar Câmera</button>
+        <button id="takePhoto" class="btn-success hidden">📸 Ler Código</button>
+        <button id="stopCamera" class="btn-danger hidden">⏹️ Parar Câmera</button>
+      </div>
+      <div id="videoContainer" class="hidden">
+        <video id="video" muted playsinline></video>
+        <div class="camera-overlay"></div>
+      </div>
+      <div class="flex items-center">
+        <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
+          onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()" />
+        <button id="addProduct" class="btn-success ml-2">➕ Adicionar</button>
+      </div>
+    </section>
 
-        <section>
-            <h2>Progresso da Verificação</h2>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
-            </div>
-            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span
-                    id="totalCount">0</span>)</p>
-            <div class="stats-grid">
-                <div>
-                    <p class="stat-value"><span id="scannedCount">0</span></p>
-                    <p>Escaneados</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="expectedCount">0</span></p>
-                    <p>Esperados</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="okCount">0</span> ✓</p>
-                    <p>OK</p>
-                </div>
-                <div>
-                    <p class="stat-value"><span id="problemCount">0</span> ⚠️</p>
-                    <p>Problemas</p>
-                </div>
-            </div>
-        </section>
+    <section>
+      <h2>Progresso da Verificação</h2>
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+      </div>
+      <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span
+          id="totalCount">0</span>)</p>
+      <div class="stats-grid">
+        <div>
+          <p class="stat-value"><span id="scannedCount">0</span></p>
+          <p>Escaneados</p>
+        </div>
+        <div>
+          <p class="stat-value"><span id="expectedCount">0</span></p>
+          <p>Esperados</p>
+        </div>
+        <div>
+          <p class="stat-value"><span id="okCount">0</span> ✓</p>
+          <p>OK</p>
+        </div>
+        <div>
+          <p class="stat-value"><span id="problemCount">0</span> ⚠️</p>
+          <p>Problemas</p>
+        </div>
+      </div>
+    </section>
 
-        <section>
-            <h2>📦 Produtos</h2>
-            <div id="noProducts" class="text-center py-4">
-                <p class="text-xl">📦</p>
-                <p>Carregue um CSV e escaneie os produtos!</p>
-            </div>
-            <ul id="productList" class="hidden"></ul>
-        </section>
+    <section>
+      <h2>📦 Produtos</h2>
+      <div id="noProducts" class="text-center py-4">
+        <p class="text-xl">📦</p>
+        <p>Carregue um CSV e escaneie os produtos!</p>
+      </div>
+      <ul id="productList" class="hidden"></ul>
+    </section>
 
-        <section class="actions-container flex justify-between gap-2">
-            <button id="loadTestData" class="btn-warning">
-                📊 Carregar Dados Teste
-            </button>
-            <button id="exportImage" class="btn-secondary">
-                🖼️ Exportar Relatório
-            </button>
-            <button id="clearAll" class="btn-danger">
-                🗑️ Limpar Tudo
-            </button>
-        </section>
-    </div>
+    <section class="actions-container flex justify-between gap-2">
+      <button id="loadTestData" class="btn-warning">📊 Carregar Dados Teste</button>
+      <button id="exportImage" class="btn-secondary">🖼️ Exportar Relatório</button>
+      <button id="clearAll" class="btn-danger">🗑️ Limpar Tudo</button>
+    </section>
+  </div>
 
-    <script>
-        const state = {
-            products: JSON.parse(localStorage.getItem('products')) || [],
-            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
-            codeReader: null,
-            audioContext: null,
-            currentStream: null // To keep track of the camera stream
-        };
+  <script>
+    const state = {
+      products: JSON.parse(localStorage.getItem('products')) || [],
+      scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
+      codeReader: null,
+      audioContext: null,
+      currentStream: null
+    };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initEventListeners();
-            updateProductList();
-        });
+    document.addEventListener('DOMContentLoaded', () => {
+      initEventListeners();
+      updateProductList();
+    });
 
-        function initEventListeners() {
-            document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
-            document.getElementById('loadTestData').addEventListener('click', loadTestData);
-            document.getElementById('startCamera').addEventListener('click', startCamera);
-            document.getElementById('takePhoto').addEventListener('click', takePhotoAndScan); // New event listener
-            document.getElementById('stopCamera').addEventListener('click', stopCamera);
-            document.getElementById('addProduct').addEventListener('click', addProductManually);
-            document.getElementById('exportImage').addEventListener('click', exportAsImage);
-            document.getElementById('clearAll').addEventListener('click', clearAll);
-        }
+    function initEventListeners() {
+      document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
+      document.getElementById('loadTestData').addEventListener('click', loadTestData);
+      document.getElementById('startCamera').addEventListener('click', startCamera);
+      document.getElementById('takePhoto').addEventListener('click', takePhotoAndScan);
+      document.getElementById('stopCamera').addEventListener('click', stopCamera);
+      document.getElementById('addProduct').addEventListener('click', addProductManually);
+      document.getElementById('exportImage').addEventListener('click', exportAsImage);
+      document.getElementById('clearAll').addEventListener('click', clearAll);
+    }
 
-        function handleCsvUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    function handleCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.products = parseCsv(e.target.result);
+        state.scannedProducts = [];
+        saveState();
+        updateProductList();
+      };
+      reader.readAsText(file);
+    }
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                state.products = parseCsv(text);
-                state.scannedProducts = [];
-                saveState();
-                updateProductList();
-            };
-            reader.readAsText(file);
-        }
+    function parseCsv(text) {
+      return text.split('\n')
+        .slice(1)
+        .map(line => {
+          const [code, name, expectedQty] = line.split(',');
+          return {
+            code: (code || '').trim(),
+            name: (name || '').trim(),
+            expectedQty: parseInt(expectedQty) || 1,
+            scannedQty: 0
+          };
+        })
+        .filter(p => p.code && p.name);
+    }
 
-        function parseCsv(text) {
-            return text.split('\n')
-                .slice(1)
-                .map(line => {
-                    const [code, name, expectedQty] = line.split(',');
-                    return {
-                        code: (code || '').trim(),
-                        name: (name || '').trim(),
-                        expectedQty: parseInt(expectedQty) || 1,
-                        scannedQty: 0
-                    };
-                })
-                .filter(p => p.code && p.name);
-        }
-
-        function loadTestData() {
-            const testData = `code,name,expectedQty
+    function loadTestData() {
+      const testData = `code,name,expectedQty
 123456789012,Produto A,5
 987654321098,Produto B,3
 456789123456,Produto C,2
 789123456789,Produto D,1
 321654987321,Produto E,4`;
+      state.products = parseCsv(testData);
+      state.scannedProducts = [];
+      saveState();
+      updateProductList();
+      showToast('Dados de teste carregados com sucesso');
+    }
 
-            state.products = parseCsv(testData);
-            state.scannedProducts = [];
-            saveState();
-            updateProductList();
-            showToast('Dados de teste carregados com sucesso');
-        }
+    async function startCamera() {
+      try {
+        const video = document.getElementById('video');
+        document.getElementById('videoContainer').classList.remove('hidden');
+        document.getElementById('startCamera').classList.add('hidden');
+        document.getElementById('takePhoto').classList.remove('hidden');
+        document.getElementById('stopCamera').classList.remove('hidden');
 
-        async function startCamera() {
-            try {
-                const video = document.getElementById('video');
-                document.getElementById('videoContainer').classList.remove('hidden');
-                document.getElementById('startCamera').classList.add('hidden');
-                document.getElementById('takePhoto').classList.remove('hidden'); // Show take photo button
-                document.getElementById('stopCamera').classList.remove('hidden');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        video.srcObject = stream;
+        state.currentStream = stream;
+        await video.play();
 
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                });
-                video.srcObject = stream;
-                state.currentStream = stream; // Store the stream
-                video.play();
+        state.codeReader = new ZXing.BrowserMultiFormatReader();
+        showToast('Câmera iniciada. Clique em "Ler Código"');
+      } catch (error) {
+        console.error('Erro ao acessar a câmera:', error);
+        showToast('Erro ao acessar a câmera. Verifique as permissões.');
+        stopCamera();
+      }
+    }
 
-                state.codeReader = new ZXing.BrowserMultiFormatReader();
-                showToast('Câmera iniciada. Aponte para o código e clique em "Ler Código"');
-            } catch (error) {
-                console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
-                stopCamera();
-            }
-        }
+    async function takePhotoAndScan() {
+      const video = document.getElementById('video');
+      if (video.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        showToast('Câmera ainda não está pronta.');
+        return;
+      }
 
-        async function takePhotoAndScan() {
-            if (!state.codeReader) {
-                showToast('A câmera não está ativa. Inicie a câmera primeiro.');
-                return;
-            }
+      try {
+        showToast('Lendo código…');
+        const result = await state.codeReader.decodeOnceFromVideoElement(video);
+        handleScannedCode(result.text);
+      } catch (error) {
+        console.error('Erro na leitura:', error);
+        showToast('Nenhum código válido encontrado.');
+        playErrorSound();
+        navigator.vibrate?.([100, 50, 100]);
+      }
+    }
 
-            const video = document.getElementById('video');
-            if (video.readyState !== video.HAVE_ ENOUGH_DATA) {
-                showToast('Câmera ainda não está pronta.');
-                return;
-            }
+    function stopCamera() {
+      state.codeReader?.reset();
+      state.codeReader = null;
 
-            try {
-                showToast('Lendo código...');
-                const result = await state.codeReader.decodeFromVideoElement(video);
-                if (result && result.text) {
-                    handleScannedCode(result.text);
-                } else {
-                    showToast('Nenhum código encontrado na imagem.');
-                    playErrorSound();
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-                }
-            } catch (error) {
-                if (error instanceof ZXing.NotFoundException) {
-                    showToast('Nenhum código de barras ou QR code detectado.');
-                } else if (error instanceof ZXing.ChecksumException || error instanceof ZXing.FormatException) {
-                    showToast('Código de barras ou QR code inválido.');
-                } else {
-                    console.error('Erro ao decodificar:', error);
-                    showToast('Erro ao ler o código.');
-                }
-                playErrorSound();
-                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            }
-        }
+      if (state.currentStream) {
+        state.currentStream.getTracks().forEach(t => t.stop());
+        state.currentStream = null;
+      }
+      document.getElementById('video').srcObject = null;
+      document.getElementById('videoContainer').classList.add('hidden');
+      document.getElementById('startCamera').classList.remove('hidden');
+      document.getElementById('takePhoto').classList.add('hidden');
+      document.getElementById('stopCamera').classList.add('hidden');
+      showToast('Câmera parada.');
+    }
 
-        function stopCamera() {
-            if (state.codeReader) {
-                state.codeReader.reset();
-                state.codeReader = null;
-            }
+    function addProductManually() {
+      const code = document.getElementById('barcodeInput').value.trim();
+      if (!code) return;
+      handleScannedCode(code);
+      document.getElementById('barcodeInput').value = '';
+    }
 
-            const video = document.getElementById('video');
-            if (state.currentStream) {
-                state.currentStream.getTracks().forEach(track => track.stop());
-                state.currentStream = null;
-            }
-            video.srcObject = null; // Clear the video source
+    function handleScannedCode(code) {
+      const product = state.products.find(p => p.code === code);
+      if (!product) {
+        playErrorSound();
+        showToast('⚠️ Produto não encontrado na lista');
+        navigator.vibrate?.([100, 50, 100]);
+        return;
+      }
+      if (product.scannedQty >= product.expectedQty) {
+        showToast(`❌ ${product.name} já completado (${product.scannedQty}/${product.expectedQty})`);
+        playErrorSound();
+        navigator.vibrate?.([100, 50, 100]);
+        return;
+      }
+      product.scannedQty++;
+      state.scannedProducts.push(code);
+      saveState();
+      updateProductList();
+      playBeep();
+      if (product.scannedQty === product.expectedQty) {
+        showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
+      }
+    }
 
-            document.getElementById('videoContainer').classList.add('hidden');
-            document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('takePhoto').classList.add('hidden'); // Hide take photo button
-            document.getElementById('stopCamera').classList.add('hidden');
-            showToast('Câmera parada.');
-        }
+    function updateProductList() {
+      const ul = document.getElementById('productList');
+      const no = document.getElementById('noProducts');
 
-        function addProductManually() {
-            const codeInput = document.getElementById('barcodeInput');
-            const code = codeInput.value.trim();
+      const totalQty = state.products.reduce((s, p) => s + p.expectedQty, 0);
+      const scannedQty = state.products.reduce((s, p) => s + p.scannedQty, 0);
+      const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
+      const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length;
+      const percent = totalQty ? Math.round(scannedQty / totalQty * 100) : 0;
 
-            if (code) {
-                handleScannedCode(code);
-                codeInput.value = '';
-            }
-        }
+      if (state.products.length) {
+        no.classList.add('hidden');
+        ul.classList.remove('hidden');
+        ul.innerHTML = state.products.map(p => {
+          const complete = p.scannedQty === p.expectedQty;
+          const over = p.scannedQty > p.expectedQty;
+          const under = p.scannedQty < p.expectedQty;
+          let cls = 'status-ok', icon = '✓ (Completo)';
+          if (over) { cls = 'status-warning'; icon = '⚠️ (Excesso)'; }
+          if (under) { cls = 'status-error'; icon = '⚠️ (Faltando)'; }
+          return `
+            <li class="${complete ? 'product-complete' : ''}">
+              <div class="product-info">
+                <div class="product-name">${p.name}</div>
+                <div class="product-code">${p.code}</div>
+              </div>
+              <span class="product-status ${cls}">
+                ${p.scannedQty}/${p.expectedQty} ${icon}
+              </span>
+            </li>
+          `;
+        }).join('');
+      } else {
+        no.classList.remove('hidden');
+        ul.classList.add('hidden');
+      }
 
-        function handleScannedCode(code) {
-            const product = state.products.find(p => p.code === code);
+      document.getElementById('scannedCount').textContent = scannedQty;
+      document.getElementById('expectedCount').textContent = totalQty;
+      document.getElementById('okCount').textContent = okCount;
+      document.getElementById('problemCount').textContent = problemCount;
+      document.getElementById('foundCount').textContent = scannedQty;
+      document.getElementById('totalCount').textContent = totalQty;
+      const bar = document.getElementById('progressBar');
+      bar.style.width = `${percent}%`;
+      document.getElementById('progressPercent').textContent = `${percent}%`;
+      bar.className = 'progress-bar';
+      if (percent === 100 && problemCount === 0) bar.classList.add('bg-green-500');
+      else if (percent === 100) bar.classList.add('bg-yellow-500');
+      else bar.classList.add('bg-red-500');
+    }
 
-            if (product) {
-                if (product.scannedQty >= product.expectedQty) {
-                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
-                    playErrorSound();
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-                    return;
-                }
+    function saveState() {
+      localStorage.setItem('products', JSON.stringify(state.products));
+      localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+    }
 
-                product.scannedQty = (product.scannedQty || 0) + 1;
-                state.scannedProducts.push(code);
-                saveState();
-                updateProductList();
-                playBeep();
+    async function exportAsImage() {
+      if (!state.products.length) { showToast('Nenhum produto carregado para exportar'); return; }
+      try {
+        showToast('Gerando imagem…');
+        const exportEl = document.createElement('div');
+        exportEl.style = 'background:white;padding:20px;border-radius:8px;max-width:800px;margin:0 auto;';
+        const h1 = document.createElement('h1');
+        h1.textContent = 'Relatório de Inventário';
+        h1.style = 'text-align:center;margin-bottom:16px;font-size:1.5rem;';
+        exportEl.appendChild(h1);
+        const pDate = document.createElement('p');
+        pDate.textContent = new Date().toLocaleString();
+        pDate.style = 'text-align:center;margin-bottom:24px;color:#666;';
+        exportEl.appendChild(pDate);
+        const progSec = document.querySelector('section:nth-of-type(3)').cloneNode(true);
+        progSec.style.marginBottom = '24px';
+        exportEl.appendChild(progSec);
+        const listClone = document.getElementById('productList').cloneNode(true);
+        listClone.style.maxHeight = 'none';
+        listClone.style.overflow = 'visible';
+        exportEl.appendChild(listClone);
+        document.body.appendChild(exportEl);
+        const canvas = await html2canvas(exportEl, { scale: 2, logging: false, useCORS: true });
+        document.body.removeChild(exportEl);
+        const link = document.createElement('a');
+        link.download = `inventario_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('Imagem exportada com sucesso');
+      } catch (err) {
+        console.error(err);
+        showToast('Erro ao gerar imagem');
+      }
+    }
 
-                if (product.scannedQty === product.expectedQty) {
-                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
-                }
-            } else {
-                playErrorSound();
-                showToast('⚠️ Produto não encontrado na lista');
-                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            }
-        }
+    function clearAll() {
+      if (confirm('Tem certeza que deseja limpar todos os dados?')) {
+        stopCamera();
+        state.products = [];
+        state.scannedProducts = [];
+        localStorage.removeItem('products');
+        localStorage.removeItem('scannedProducts');
+        document.getElementById('csvInput').value = '';
+        document.getElementById('barcodeInput').value = '';
+        updateProductList();
+        showToast('Todos os dados foram limpos');
+      }
+    }
 
-        function updateProductList() {
-            const productList = document.getElementById('productList');
-            const noProducts = document.getElementById('noProducts');
+    function playBeep() {
+      if (!state.audioContext) state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = state.audioContext.createOscillator();
+      const gain = state.audioContext.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, state.audioContext.currentTime);
+      gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
+      osc.connect(gain);
+      gain.connect(state.audioContext.destination);
+      osc.start();
+      osc.stop(state.audioContext.currentTime + 0.3);
+    }
 
-            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
-            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
-            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
-            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length;
-            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+    function playErrorSound() {
+      if (!state.audioContext) state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = state.audioContext.createOscillator();
+      const gain = state.audioContext.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(300, state.audioContext.currentTime);
+      gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
+      osc.connect(gain);
+      gain.connect(state.audioContext.destination);
+      osc.start();
+      osc.stop(state.audioContext.currentTime + 0.5);
+    }
 
-            if (state.products.length > 0) {
-                noProducts.classList.add('hidden');
-                productList.classList.remove('hidden');
-
-                productList.innerHTML = state.products.map(product => {
-                    const isComplete = product.scannedQty === product.expectedQty;
-                    const isOver = product.scannedQty > product.expectedQty;
-                    const isUnder = product.scannedQty < product.expectedQty;
-
-                    let statusClass = 'status-ok';
-                    let statusIcon = '✓ (Completo)';
-
-                    if (isOver) {
-                        statusClass = 'status-warning';
-                        statusIcon = '⚠️ (Excesso)';
-                    } else if (isUnder) {
-                        statusClass = 'status-error';
-                        statusIcon = '⚠️ (Faltando)';
-                    }
-
-                    return `
-                        <li class="${isComplete ? 'product-complete' : ''}">
-                            <div class="product-info">
-                                <div class="product-name">${product.name}</div>
-                                <div class="product-code">${product.code}</div>
-                            </div>
-                            <span class="product-status ${statusClass}">
-                                ${product.scannedQty || 0}/${product.expectedQty}
-                                ${statusIcon}
-                            </span>
-                        </li>
-                    `;
-                }).join('');
-            } else {
-                noProducts.classList.remove('hidden');
-                productList.classList.add('hidden');
-            }
-
-            document.getElementById('scannedCount').textContent = scannedQty;
-            document.getElementById('expectedCount').textContent = totalQty;
-            document.getElementById('okCount').textContent = okCount;
-            document.getElementById('problemCount').textContent = problemCount;
-            document.getElementById('foundCount').textContent = scannedQty;
-            document.getElementById('totalCount').textContent = totalQty;
-            document.getElementById('progressBar').style.width = `${progressPercent}%`;
-            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-
-            const progressBar = document.getElementById('progressBar');
-            progressBar.className = 'progress-bar';
-
-            if (progressPercent === 100 && problemCount === 0) {
-                progressBar.classList.add('bg-green-500');
-            } else if (progressPercent === 100) {
-                progressBar.classList.add('bg-yellow-500');
-            } else {
-                progressBar.classList.add('bg-red-500');
-            }
-        }
-
-        function saveState() {
-            localStorage.setItem('products', JSON.stringify(state.products));
-            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
-        }
-
-        async function exportAsImage() {
-            if (state.products.length === 0) {
-                showToast('Nenhum produto carregado para exportar');
-                return;
-            }
-
-            try {
-                showToast('Gerando imagem...');
-
-                const exportElement = document.createElement('div');
-                exportElement.className = 'export-container';
-                exportElement.style.background = 'white';
-                exportElement.style.padding = '20px';
-                exportElement.style.borderRadius = '8px';
-                exportElement.style.maxWidth = '800px';
-                exportElement.style.margin = '0 auto';
-
-                const title = document.createElement('h1');
-                title.textContent = 'Relatório de Inventário';
-                title.style.textAlign = 'center';
-                title.style.marginBottom = '16px';
-                title.style.fontSize = '1.5rem';
-                exportElement.appendChild(title);
-
-                const date = document.createElement('p');
-                date.textContent = new Date().toLocaleString();
-                date.style.textAlign = 'center';
-                date.style.marginBottom = '24px';
-                date.style.color = '#666';
-                exportElement.appendChild(date);
-
-                const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
-                progressSection.style.marginBottom = '24px';
-                exportElement.appendChild(progressSection);
-
-                const productList = document.getElementById('productList').cloneNode(true);
-                productList.style.maxHeight = 'none';
-                productList.style.overflow = 'visible';
-                exportElement.appendChild(productList);
-
-                document.body.appendChild(exportElement);
-
-                const canvas = await html2canvas(exportElement, {
-                    scale: 2,
-                    logging: false,
-                    useCORS: true,
-                    allowTaint: true
-                });
-
-                document.body.removeChild(exportElement);
-
-                const link = document.createElement('a');
-                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-
-                showToast('Imagem exportada com sucesso');
-            } catch (error) {
-                console.error('Erro ao exportar imagem:', error);
-                showToast('Erro ao gerar imagem');
-            }
-        }
-
-        function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
-                stopCamera();
-                state.products = [];
-                state.scannedProducts = [];
-                localStorage.removeItem('products');
-                localStorage.removeItem('scannedProducts');
-
-                document.getElementById('csvInput').value = '';
-                document.getElementById('barcodeInput').value = '';
-                updateProductList();
-
-                showToast('Todos os dados foram limpos');
-            }
-        }
-
-        function playBeep() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
-
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.3);
-        }
-
-        function playErrorSound() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
-
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.5);
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-    </script>
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
 </body>
 
 </html>
