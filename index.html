@@ -6,142 +6,65 @@
     <title>Contador de Produtos - Transportadora</title>
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box; [cite: 1]
-            margin: 0; [cite: 2]
-            padding: 0; [cite: 2]
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; [cite: 2]
-            background-color: #f3f4f6; [cite: 3]
-            color: #111827; [cite: 3]
-            line-height: 1.5; [cite: 3]
-            padding: 16px; [cite: 3]
-        }
-        .container {
-            max-width: 800px; [cite: 3]
-            margin: 0 auto; [cite: 4]
-        }
-        section {
-            background-color: white; [cite: 4]
-            border-radius: 8px; [cite: 5]
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); [cite: 5]
-            padding: 16px; [cite: 5]
-            margin-bottom: 16px; [cite: 5]
-        }
-        h1, h2 { font-weight: 600; [cite: 6] color: #111827; [cite: 7] }
-        h1 { font-size: 1.5rem; [cite: 7] text-align: center; [cite: 8] margin-bottom: 4px; [cite: 8] }
-        h2 { font-size: 1.125rem; [cite: 8] margin-bottom: 12px; [cite: 9] }
-        .subtitle { color: #6b7280; [cite: 9] font-size: 0.875rem; [cite: 10] text-align: center; [cite: 10] margin-bottom: 16px; [cite: 10] }
-        input[type="text"], input[type="file"] {
-            width: 100%; [cite: 10]
-            padding: 8px 12px; [cite: 11]
-            border: 1px solid #d1d5db; [cite: 11]
-            border-radius: 4px; [cite: 11]
-            font-size: 0.875rem; [cite: 11]
-            margin-bottom: 12px; [cite: 11]
-        }
-        button {
-            padding: 8px 16px; [cite: 12]
-            border-radius: 4px; [cite: 13]
-            font-size: 0.875rem; [cite: 13]
-            font-weight: 500; [cite: 13]
-            border: none; [cite: 13]
-            cursor: pointer; [cite: 13]
-            display: inline-flex; [cite: 13]
-            align-items: center; [cite: 13]
-            justify-content: center; [cite: 13]
-            transition: background-color 0.2s; [cite: 13]
-        }
-        .btn-primary { background-color: #3b82f6; [cite: 14] color: white; [cite: 15] }
-        .btn-primary:hover { background-color: #2563eb; [cite: 16] }
-        .btn-danger { background-color: #ef4444; [cite: 16] color: white; [cite: 17] }
-        .btn-danger:hover { background-color: #dc2626; [cite: 18] }
-        .btn-success { background-color: #10b981; [cite: 18] color: white; [cite: 19] }
-        .btn-success:hover { background-color: #059669; [cite: 20] }
-        .btn-warning { background-color: #f59e0b; [cite: 20] color: white; [cite: 21] }
-        .btn-warning:hover { background-color: #d97706; [cite: 22] }
-        .btn-secondary { background-color: #8b5cf6; [cite: 22] color: white; [cite: 23] }
-        .btn-secondary:hover { background-color: #7c3aed; [cite: 24] }
-        .flex { display: flex; [cite: 24] }
-        .justify-between { justify-content: space-between; [cite: 25] }
-        .items-center { align-items: center; [cite: 26] }
-        .hidden { display: none;  }
-        #productList {
-            max-height: 300px; 
-            overflow-y: auto; [cite: 29]
-            border-top: 1px solid #e5e7eb; [cite: 29]
-            border-bottom: 1px solid #e5e7eb; [cite: 29]
-            margin: 8px 0; [cite: 29]
-        }
-        #productList li {
-            padding: 8px 0; [cite: 30]
-            border-bottom: 1px solid #e5e7eb; [cite: 31]
-            display: flex; [cite: 31]
-            justify-content: space-between; [cite: 31]
-            align-items: center; [cite: 31]
-        }
-        #productList li:last-child { border-bottom: none; [cite: 33] }
-        .product-info { flex: 1; [cite: 33] overflow: hidden; [cite: 34] }
-        .product-name { font-weight: 500; [cite: 34] white-space: nowrap; [cite: 35] overflow: hidden; [cite: 35] text-overflow: ellipsis; [cite: 35] }
-        .product-code { font-size: 0.75rem; [cite: 35] color: #6b7280; [cite: 36] }
-        .product-status { font-weight: 500; [cite: 36] margin-left: 8px; [cite: 37] white-space: nowrap; [cite: 37] }
-        .status-ok { color: #10b981; [cite: 38] }
-        .status-warning { color: #f59e0b; [cite: 39] }
-        .status-error { color: #ef4444; [cite: 40] }
-        .product-complete { opacity: 0.7; [cite: 40] background-color: rgba(16, 185, 129, 0.1); [cite: 41] }
-        .progress-container { width: 100%; [cite: 41] background-color: #e5e7eb; [cite: 42] border-radius: 4px; [cite: 42] height: 8px; [cite: 42] margin-bottom: 8px; [cite: 42] }
-        .progress-bar { height: 100%; [cite: 42] border-radius: 4px; [cite: 43] background-color: #10b981; [cite: 43] transition: width 0.3s; [cite: 43] }
-        .stats-grid { display: grid; [cite: 43] grid-template-columns: repeat(2, 1fr); [cite: 44] gap: 16px; [cite: 44] text-align: center; [cite: 44] margin-top: 12px; [cite: 44] }
-        .stat-value { font-weight: 600; [cite: 44] font-size: 1.25rem; [cite: 45] }
-        #videoContainer { position: relative; [cite: 45] margin-bottom: 16px; [cite: 46] }
-        #video { width: 100%; [cite: 46] border-radius: 8px; [cite: 47] }
-        .camera-overlay { position: absolute; [cite: 47] inset: 0; [cite: 48] border: 4px solid rgba(59, 130, 246, 0.5); [cite: 48] pointer-events: none; [cite: 49] }
-        .toast {
-            position: fixed; [cite: 49] bottom: 20px; [cite: 50]
-            left: 50%; [cite: 50]
-            transform: translateX(-50%); [cite: 50]
-            background-color: #1f2937; [cite: 50]
-            color: white; [cite: 50] padding: 12px 24px; [cite: 50] border-radius: 4px; [cite: 50]
-            z-index: 1000; [cite: 50] opacity: 0; [cite: 50] transition: opacity 0.3s ease-in-out; [cite: 51]
-            font-size: 0.875rem; [cite: 51]
-        }
-        .toast.show { opacity: 1; [cite: 52] }
-        @media (max-width: 640px) {
-            .container { padding: 8px; [cite: 53] }
-            .actions-container { flex-direction: column; [cite: 54] gap: 8px; [cite: 54] }
-            .actions-container button { width: 100%; [cite: 55] }
-        }
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
 
-        /* --- ESTILOS CORRIGIDOS PARA VÍDEO FLUTUANTE --- */
-        #videoContainer.hidden {
-            display: none;
-        }
-        #videoContainer.video-flutuante {
-            display: block;
-            position: fixed;
-            top: 16px; right: 16px;
-            width: 40vw; max-width: 350px;
-            height: auto; aspect-ratio: 1 / 1;
-            z-index: 1001;
-            border: 2px solid #fff;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 0;
-        }
-        #videoContainer.video-flutuante #video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-        }
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; color: #111827; line-height: 1.5; padding: 16px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        section { background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); padding: 16px; margin-bottom: 16px; }
+        h1, h2 { font-weight: 600; color: #111827; }
+        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 4px; }
+        h2 { font-size: 1.125rem; margin-bottom: 12px; }
+        .subtitle { color: #6b7280; font-size: 0.875rem; text-align: center; margin-bottom: 16px; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; margin-bottom: 12px; }
+        button { padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
+        .btn-secondary { background-color: #8b5cf6; color: white; }
+        .btn-secondary:hover { background-color: #7c3aed; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .hidden { display: none; }
+        #productList { max-height: 300px; overflow-y: auto; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 8px 0; }
+        #productList li { padding: 8px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        #productList li:last-child { border-bottom: none; }
+        .product-info { flex: 1; overflow: hidden; }
+        .product-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-code { font-size: 0.75rem; color: #6b7280; }
+        .product-status { font-weight: 500; margin-left: 8px; white-space: nowrap; }
+        .status-ok { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-error { color: #ef4444; }
+        .product-complete { opacity: 0.7; background-color: rgba(16, 185, 129, 0.1); }
+        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 8px; margin-bottom: 8px; }
+        .progress-bar { height: 100%; border-radius: 4px; background-color: #10b981; transition: width 0.3s; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center; margin-top: 12px; }
+        .stat-value { font-weight: 600; font-size: 1.25rem; }
+        #videoContainer { position: relative; margin-bottom: 16px; }
+        #video { width: 100%; border-radius: 8px; }
+        .camera-overlay { position: absolute; inset: 0; border: 4px solid rgba(59, 130, 246, 0.5); pointer-events: none; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #1f2937; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000; opacity: 0; transition: opacity 0.3s ease-in-out; font-size: 0.875rem; }
+        .toast.show { opacity: 1; }
+        
+        #videoContainer.hidden { display: none; }
+        #videoContainer.video-flutuante { display: block; position: fixed; top: 16px; right: 16px; width: 40vw; max-width: 350px; height: auto; aspect-ratio: 1 / 1; z-index: 1001; border: 2px solid #fff; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; margin-bottom: 0; }
+        #videoContainer.video-flutuante #video { width: 100%; height: 100%; object-fit: cover; }
+        
         @media (max-width: 640px) {
-            #videoContainer.video-flutuante {
-                top: 8px; left: 8px; right: 8px;
-                width: calc(100% - 16px);
-                max-width: none;
-                aspect-ratio: 4 / 3;
-            }
+            .container { padding: 8px; }
+            .actions-container { flex-direction: column; gap: 8px; }
+            .actions-container button { width: 100%; }
+            #videoContainer.video-flutuante { top: 8px; left: 8px; right: 8px; width: calc(100% - 16px); max-width: none; aspect-ratio: 4 / 3; }
         }
     </style>
 </head>
@@ -153,170 +76,78 @@
             <p class="subtitle">Escaneie produtos para verificar a carga</p>
         </header>
         <section>
-            <label for="csvInput" class="block">Carregar Lista CSV</label>
-            <input id="csvInput" type="file" accept=".csv"> [cite: 56]
-            <p class="text-sm">Formato esperado: Código,Nome,Quantidade (uma linha por produto)</p>
+            <label for="fileInput" class="block">Carregar Lista (CSV ou PDF)</label>
+            <input id="fileInput" type="file" accept=".csv,.pdf">
+            <p class="text-sm">CSV: Código,Nome,Quantidade. PDF: texto simples com um produto por linha.</p>
         </section>
         <section>
             <div class="flex justify-between mb-4">
-                <button id="startCamera" class="btn-primary">📷 Iniciar Câmera</button> [cite: 57]
-                <button id="takePhoto" class="btn-success hidden">📸 Ler Código</button>
-                <button id="stopCamera" class="btn-danger hidden">⏹️ Parar Câmera</button> [cite: 58]
+                <button id="startCamera" class="btn-primary">📷 Iniciar Câmera</button>
+                <button id="stopCamera" class="btn-danger hidden">⏹️ Parar Câmera</button>
             </div>
-            <div id="videoContainer" class="hidden"> [cite: 58]
-                <video id="video" muted playsinline></video> [cite: 59]
-                <div class="camera-overlay"></div> [cite: 59]
+            <div id="videoContainer" class="hidden">
+                <video id="video" muted playsinline></video>
+                <div class="camera-overlay"></div>
             </div>
             <div class="flex items-center">
                 <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
                     onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
-                <button id="addProduct" class="btn-success ml-2">➕ Adicionar</button> [cite: 60]
+                <button id="addProduct" class="btn-success ml-2">➕ Adicionar</button>
             </div>
         </section>
         <section>
             <h2>Progresso da Verificação</h2>
             <div class="progress-container">
-                <div id="progressBar" class="progress-bar" style="width: 0%"></div> [cite: 61]
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
             </div>
             <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span id="totalCount">0</span>)</p>
             <div class="stats-grid">
-                <div> <p class="stat-value"><span id="scannedCount">0</span></p> <p>Escaneados</p> </div> [cite: 62]
-                <div> <p class="stat-value"><span id="expectedCount">0</span></p> <p>Esperados</p> </div> [cite: 63]
+                <div> <p class="stat-value"><span id="scannedCount">0</span></p> <p>Escaneados</p> </div>
+                <div> <p class="stat-value"><span id="expectedCount">0</span></p> <p>Esperados</p> </div>
                 <div> <p class="stat-value"><span id="okCount">0</span> ✓</p> <p>OK</p> </div>
-                <div> <p class="stat-value"><span id="problemCount">0</span> ⚠️</p> <p>Problemas</p> </div> [cite: 64]
+                <div> <p class="stat-value"><span id="problemCount">0</span> ⚠️</p> <p>Problemas</p> </div>
             </div>
         </section>
         <section>
             <h2>📦 Produtos</h2>
-            <div id="noProducts" class="text-center py-4"> [cite: 65]
+            <div id="noProducts" class="text-center py-4">
                 <p class="text-xl">📦</p>
-                <p>Carregue um CSV e escaneie os produtos!</p>
+                <p>Carregue um arquivo e escaneie os produtos!</p>
             </div>
             <ul id="productList" class="hidden"></ul>
         </section>
         <section class="actions-container flex justify-between gap-2">
-            <button id="loadTestData" class="btn-warning">📊 Carregar Dados Teste</button> [cite: 66]
+            <button id="loadTestData" class="btn-warning">📊 Carregar Dados Teste</button>
             <button id="exportImage" class="btn-secondary">🖼️ Exportar Relatório</button>
-            <button id="clearAll" class="btn-danger">🗑️ Limpar Tudo</button> [cite: 67]
+            <button id="clearAll" class="btn-danger">🗑️ Limpar Tudo</button>
         </section>
     </div>
 
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+
         const state = {
-            products: JSON.parse(localStorage.getItem('products')) || [], [cite: 68]
-            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [], [cite: 69]
+            products: JSON.parse(localStorage.getItem('products')) || [],
+            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
             codeReader: null,
             audioContext: null
         };
         document.addEventListener('DOMContentLoaded', () => {
             initEventListeners();
             updateProductList();
-        }); [cite: 70]
+        });
 
         function initEventListeners() {
-            document.getElementById('csvInput').addEventListener('change', handleCsvUpload); [cite: 71]
-            document.getElementById('loadTestData').addEventListener('click', loadTestData); [cite: 71]
-            document.getElementById('startCamera').addEventListener('click', startCamera); [cite: 71]
-            document.getElementById('stopCamera').addEventListener('click', stopCamera); [cite: 72]
-            document.getElementById('addProduct').addEventListener('click', addProductManually); [cite: 73]
-            document.getElementById('exportImage').addEventListener('click', exportAsImage); [cite: 73]
-            document.getElementById('clearAll').addEventListener('click', clearAll); [cite: 73]
-        }
-        function handleCsvUpload(event) {
-            const file = event.target.files[0]; [cite: 73]
-            if (!file) return; [cite: 74]
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result; [cite: 74]
-                state.products = parseCsv(text); [cite: 75]
-                state.scannedProducts = []; [cite: 75]
-                saveState(); [cite: 75]
-                updateProductList(); [cite: 75]
-            };
-            reader.readAsText(file); [cite: 75]
-        }
-        function parseCsv(text) {
-            return text.split('\n').slice(1).map(line => {
-                const [code, name, expectedQty] = line.split(','); [cite: 76]
-                return {
-                    code: (code || '').trim(), [cite: 77]
-                    name: (name || '').trim(), [cite: 77]
-                    expectedQty: parseInt(expectedQty) || 1, [cite: 77]
-                    scannedQty: 0 [cite: 78]
-                };
-            }).filter(p => p.code && p.name); [cite: 78]
-        }
-        function loadTestData() {
-            const testData = `code,name,expectedQty
-123456789012,Produto A,5
-987654321098,Produto B,3
-456789123456,Produto C,2
-789123456789,Produto D,1
-321654987321,Produto E,4`; [cite: 79]
-            state.products = parseCsv(testData); [cite: 80]
-            state.scannedProducts = []; [cite: 80]
-            saveState(); [cite: 80]
-            updateProductList(); [cite: 80]
-            showToast('Dados de teste carregados com sucesso'); [cite: 80]
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            document.getElementById('loadTestData').addEventListener('click', loadTestData);
+            document.getElementById('startCamera').addEventListener('click', startCamera);
+            document.getElementById('stopCamera').addEventListener('click', stopCamera);
+            document.getElementById('addProduct').addEventListener('click', addProductManually);
+            document.getElementById('exportImage').addEventListener('click', exportAsImage);
+            document.getElementById('clearAll').addEventListener('click', clearAll);
         }
 
-        async function startCamera() {
-            try {
-                const videoContainer = document.getElementById('videoContainer');
-                videoContainer.classList.add('video-flutuante');
-                videoContainer.classList.remove('hidden');
-
-                document.getElementById('startCamera').classList.add('hidden');
-                document.getElementById('stopCamera').classList.remove('hidden');
-
-                state.codeReader = new ZXing.BrowserMultiFormatReader();
-                const video = document.getElementById('video');
-
-                await state.codeReader.decodeFromConstraints({
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                }, video, (result, err) => {
-                    if (result) {
-                        handleScannedCode(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Erro de decodificação:', err);
-                    }
-                });
-                showToast('Câmera iniciada.');
-            } catch (error) {
-                console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
-                stopCamera();
-            }
-        }
-        
-        function stopCamera() {
-            if (state.codeReader) {
-                state.codeReader.reset();
-                state.codeReader = null;
-            }
-            const videoContainer = document.getElementById('videoContainer');
-            videoContainer.classList.remove('video-flutuante');
-            videoContainer.classList.add('hidden');
-
-            document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('stopCamera').classList.add('hidden');
-            showToast('Câmera parada.');
-        }
-
-        function addProductManually() {
-            const codeInput = document.getElementById('barcodeInput'); [cite: 104]
-            const code = codeInput.value.trim(); [cite: 105]
-            if (code) {
-                handleScannedCode(code); [cite: 105]
-                codeInput.value = ''; [cite: 106]
-            }
-        }
-async function handleFileUpload(event) {
+        async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -333,7 +164,6 @@ async function handleFileUpload(event) {
                     showToast('Lista CSV carregada com sucesso!');
                 };
                 reader.readAsText(file);
-
             } else if (file.name.toLowerCase().endsWith('.pdf')) {
                 const reader = new FileReader();
                 reader.onload = async (e) => {
@@ -341,32 +171,13 @@ async function handleFileUpload(event) {
                         const pdfData = new Uint8Array(e.target.result);
                         const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
                         let fullText = '';
-                        const yThreshold = 5; // Pequena tolerância para a mesma linha
 
                         for (let i = 1; i <= pdf.numPages; i++) {
                             const page = await pdf.getPage(i);
                             const textContent = await page.getTextContent();
-                            
-                            // Ordena os itens de texto por posição vertical e depois horizontal
-                            const sortedItems = textContent.items.sort((a, b) => {
-                                if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
-                                    return b.transform[5] - a.transform[5]; // Ordena por Y (vertical)
-                                }
-                                return a.transform[4] - b.transform[4]; // Ordena por X (horizontal)
-                            });
-
-                            let lastY = -1;
-                            let line = '';
-                            for (const item of sortedItems) {
-                                if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
-                                    // Se a posição Y mudou significativamente, é uma nova linha
-                                    fullText += line.trim() + '\n';
-                                    line = '';
-                                }
-                                line += item.str + ' ';
-                                lastY = item.transform[5];
-                            }
-                            fullText += line.trim() + '\n'; // Adiciona a última linha da página
+                            // Juntamos os textos, mas adicionamos quebras de linha para simular um arquivo de texto.
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n';
                         }
                         
                         state.products = parseCsv(fullText);
@@ -385,138 +196,212 @@ async function handleFileUpload(event) {
                 showToast("Formato de arquivo não suportado. Use CSV ou PDF.");
             }
         }
+
+        function parseCsv(text) {
+            // Adicionamos uma verificação para ignorar a primeira linha se for o cabeçalho padrão.
+            const lines = text.split('\n');
+            const dataLines = (lines[0] || '').toLowerCase().includes('code,name,expectedqty') ? lines.slice(1) : lines;
+
+            return dataLines.map(line => {
+                const [code, name, expectedQty] = line.split(',');
+                return {
+                    code: (code || '').trim(),
+                    name: (name || '').trim(),
+                    expectedQty: parseInt(expectedQty) || 1,
+                    scannedQty: 0
+                };
+            }).filter(p => p.code && p.name);
+        }
+        function loadTestData() {
+            const testData = `code,name,expectedQty
+123456789012,Produto A,5
+987654321098,Produto B,3
+456789123456,Produto C,2
+789123456789,Produto D,1
+321654987321,Produto E,4`;
+            state.products = parseCsv(testData);
+            state.scannedProducts = [];
+            saveState();
+            updateProductList();
+            showToast('Dados de teste carregados com sucesso');
+        }
+        async function startCamera() {
+            try {
+                const videoContainer = document.getElementById('videoContainer');
+                videoContainer.classList.add('video-flutuante');
+                videoContainer.classList.remove('hidden');
+                document.getElementById('startCamera').classList.add('hidden');
+                document.getElementById('stopCamera').classList.remove('hidden');
+                state.codeReader = new ZXing.BrowserMultiFormatReader();
+                const video = document.getElementById('video');
+                await state.codeReader.decodeFromConstraints({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                }, video, (result, err) => {
+                    if (result) { handleScannedCode(result.text); }
+                    if (err && !(err instanceof ZXing.NotFoundException)) { console.error('Erro de decodificação:', err); }
+                });
+                showToast('Câmera iniciada.');
+            } catch (error) {
+                console.error('Erro ao acessar a câmera:', error);
+                showToast('Erro ao acessar a câmera. Verifique as permissões.');
+                stopCamera();
+            }
+        }
+        function stopCamera() {
+            if (state.codeReader) { state.codeReader.reset(); state.codeReader = null; }
+            const videoContainer = document.getElementById('videoContainer');
+            videoContainer.classList.remove('video-flutuante');
+            videoContainer.classList.add('hidden');
+            document.getElementById('startCamera').classList.remove('hidden');
+            document.getElementById('stopCamera').classList.add('hidden');
+            showToast('Câmera parada.');
+        }
+        function addProductManually() {
+            const codeInput = document.getElementById('barcodeInput');
+            const code = codeInput.value.trim();
+            if (code) { handleScannedCode(code); codeInput.value = ''; }
+        }
+        function handleScannedCode(code) {
+            const product = state.products.find(p => p.code === code);
+            if (product) {
+                if (product.scannedQty >= product.expectedQty) {
+                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
+                    playErrorSound();
+                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                    return;
+                }
+                product.scannedQty = (product.scannedQty || 0) + 1;
+                state.scannedProducts.push(code);
+                saveState();
+                updateProductList();
+                playBeep();
+                if (product.scannedQty === product.expectedQty) {
+                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
+                }
+            } else {
+                playErrorSound();
+                showToast('⚠️ Produto não encontrado na lista');
+                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+            }
+        }
         function updateProductList() {
-            const productList = document.getElementById('productList'); [cite: 112]
-            const noProducts = document.getElementById('noProducts'); [cite: 113]
-            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0); [cite: 113]
-            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0); [cite: 114]
-            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length; [cite: 114]
-            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty).length; [cite: 115]
-            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0; [cite: 115]
-            if (state.products.length > 0) { [cite: 116]
-                noProducts.classList.add('hidden'); [cite: 116]
-                productList.classList.remove('hidden'); [cite: 117]
+            const productList = document.getElementById('productList');
+            const noProducts = document.getElementById('noProducts');
+            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
+            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
+            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
+            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty && p.scannedQty > 0).length;
+            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+            if (state.products.length > 0) {
+                noProducts.classList.add('hidden');
+                productList.classList.remove('hidden');
                 productList.innerHTML = state.products.map(product => {
                     const isComplete = product.scannedQty === product.expectedQty;
-                    let statusClass = 'status-ok'; [cite: 118]
-                    let statusIcon = '✓ (Completo)'; [cite: 118]
-                    if (product.scannedQty > product.expectedQty) { [cite: 118]
-                        statusClass = 'status-warning'; [cite: 118]
-                        statusIcon = '⚠️ (Excesso)'; [cite: 119]
-                    } else if (product.scannedQty < product.expectedQty) { [cite: 119]
-                        statusClass = 'status-error'; [cite: 119]
-                        statusIcon = '⚠️ (Faltando)'; [cite: 119]
+                    let statusClass = 'status-ok';
+                    let statusIcon = '✓ (Completo)';
+                    if (product.scannedQty > product.expectedQty) {
+                        statusClass = 'status-warning'; statusIcon = '⚠️ (Excesso)';
+                    } else if (product.scannedQty < product.expectedQty) {
+                        statusClass = 'status-error'; statusIcon = '(Faltando)';
                     }
-                    return `<li class="${isComplete ? 'product-complete' : ''}"> <div class="product-info"> <div class="product-name">${product.name}</div> <div class="product-code">${product.code}</div> </div> <span class="product-status ${statusClass}"> ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon} </span> </li>`; [cite: 120, 121, 122, 123, 124]
+                    return `<li class="${isComplete ? 'product-complete' : ''}"> <div class="product-info"> <div class="product-name">${product.name}</div> <div class="product-code">${product.code}</div> </div> <span class="product-status ${statusClass}"> ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon} </span> </li>`;
                 }).join('');
             } else {
-                noProducts.classList.remove('hidden'); [cite: 124]
-                productList.classList.add('hidden'); [cite: 125]
+                noProducts.classList.remove('hidden');
+                productList.classList.add('hidden');
             }
-            document.getElementById('scannedCount').textContent = scannedQty; [cite: 125]
-            document.getElementById('expectedCount').textContent = totalQty; [cite: 125]
-            document.getElementById('okCount').textContent = okCount; [cite: 126]
-            document.getElementById('problemCount').textContent = problemCount; [cite: 126]
-            document.getElementById('foundCount').textContent = scannedQty; [cite: 126]
-            document.getElementById('totalCount').textContent = totalQty; [cite: 126]
-            document.getElementById('progressBar').style.width = `${progressPercent}%`; [cite: 126]
-            document.getElementById('progressPercent').textContent = `${progressPercent}%`; [cite: 126]
+            document.getElementById('scannedCount').textContent = scannedQty;
+            document.getElementById('expectedCount').textContent = totalQty;
+            document.getElementById('okCount').textContent = okCount;
+            document.getElementById('problemCount').textContent = problemCount;
+            document.getElementById('foundCount').textContent = scannedQty;
+            document.getElementById('totalCount').textContent = totalQty;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
         }
         function saveState() {
-            localStorage.setItem('products', JSON.stringify(state.products)); [cite: 130]
-            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts)); [cite: 131]
+            localStorage.setItem('products', JSON.stringify(state.products));
+            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
         }
         async function exportAsImage() {
-            if (state.products.length === 0) { [cite: 131]
-                showToast('Nenhum produto carregado para exportar'); [cite: 132]
-                return;
-            }
+            if (state.products.length === 0) { showToast('Nenhum produto carregado para exportar'); return; }
             try {
-                showToast('Gerando imagem...'); [cite: 133]
-                const exportElement = document.createElement('div'); [cite: 133]
-                exportElement.className = 'export-container'; [cite: 133]
-                exportElement.style.background = 'white'; [cite: 133]
-                exportElement.style.padding = '20px'; [cite: 133]
-                exportElement.style.borderRadius = '8px'; [cite: 133]
-                exportElement.style.maxWidth = '800px'; [cite: 133]
-                exportElement.style.margin = '0 auto'; [cite: 134]
-                const title = document.createElement('h1'); [cite: 134]
-                title.textContent = 'Relatório de Inventário'; [cite: 134]
-                title.style.textAlign = 'center'; [cite: 134]
-                title.style.marginBottom = '16px'; [cite: 134]
-                title.style.fontSize = '1.5rem'; [cite: 135]
-                exportElement.appendChild(title); [cite: 135]
-                const date = document.createElement('p'); [cite: 135]
-                date.textContent = new Date().toLocaleString(); [cite: 135]
-                date.style.textAlign = 'center'; [cite: 135]
-                date.style.marginBottom = '24px'; [cite: 135]
-                date.style.color = '#666'; [cite: 136]
-                exportElement.appendChild(date); [cite: 136]
+                showToast('Gerando imagem...');
+                const exportElement = document.createElement('div');
+                exportElement.style.cssText = 'background: white; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto;';
+                const title = document.createElement('h1');
+                title.textContent = 'Relatório de Inventário';
+                title.style.cssText = 'text-align: center; margin-bottom: 16px; font-size: 1.5rem;';
+                exportElement.appendChild(title);
+                const date = document.createElement('p');
+                date.textContent = new Date().toLocaleString();
+                date.style.cssText = 'text-align: center; margin-bottom: 24px; color: #666;';
+                exportElement.appendChild(date);
                 const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
                 exportElement.appendChild(progressSection);
                 const productList = document.getElementById('productList').cloneNode(true);
-                productList.style.maxHeight = 'none'; [cite: 136]
-                productList.style.overflow = 'visible'; [cite: 137]
+                productList.style.maxHeight = 'none';
+                productList.style.overflow = 'visible';
                 exportElement.appendChild(productList);
                 document.body.appendChild(exportElement);
-                const canvas = await html2canvas(exportElement, { scale: 2, logging: false, useCORS: true, allowTaint: true }); [cite: 138]
+                const canvas = await html2canvas(exportElement, { scale: 2, logging: false, useCORS: true, allowTaint: true });
                 document.body.removeChild(exportElement);
-                const link = document.createElement('a'); [cite: 138]
-                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`; [cite: 139]
-                link.href = canvas.toDataURL('image/png'); [cite: 139]
+                const link = document.createElement('a');
+                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = canvas.toDataURL('image/png');
                 link.click();
-                showToast('Imagem exportada com sucesso'); [cite: 140]
+                showToast('Imagem exportada com sucesso');
             } catch (error) {
-                console.error('Erro ao exportar imagem:', error); [cite: 140]
-                showToast('Erro ao gerar imagem'); [cite: 141]
+                console.error('Erro ao exportar imagem:', error);
+                showToast('Erro ao gerar imagem');
             }
         }
         function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados?')) { [cite: 141]
+            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
                 stopCamera();
-                state.products = []; [cite: 142]
-                state.scannedProducts = []; [cite: 142]
-                localStorage.removeItem('products'); [cite: 142]
-                localStorage.removeItem('scannedProducts'); [cite: 142]
-                document.getElementById('csvInput').value = ''; [cite: 142]
-                document.getElementById('barcodeInput').value = ''; [cite: 142]
-                updateProductList(); [cite: 142]
-                showToast('Todos os dados foram limpos'); [cite: 143]
+                state.products = [];
+                state.scannedProducts = [];
+                localStorage.removeItem('products');
+                localStorage.removeItem('scannedProducts');
+                document.getElementById('fileInput').value = '';
+                document.getElementById('barcodeInput').value = '';
+                updateProductList();
+                showToast('Todos os dados foram limpos');
             }
         }
         function playBeep() {
-            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); [cite: 143] }
-            const oscillator = state.audioContext.createOscillator(); [cite: 144]
-            const gain = state.audioContext.createGain(); [cite: 144]
-            oscillator.type = 'sine'; [cite: 145]
-            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime); [cite: 145]
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime); [cite: 145]
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3); [cite: 145]
+            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+            const oscillator = state.audioContext.createOscillator();
+            const gain = state.audioContext.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
+            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
             oscillator.connect(gain);
             gain.connect(state.audioContext.destination);
             oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.3); [cite: 145]
+            oscillator.stop(state.audioContext.currentTime + 0.3);
         }
         function playErrorSound() {
-            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); [cite: 146] }
-            const oscillator = state.audioContext.createOscillator(); [cite: 147]
-            const gain = state.audioContext.createGain(); [cite: 147]
-            oscillator.type = 'square'; [cite: 148]
-            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime); [cite: 148]
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime); [cite: 148]
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5); [cite: 148]
+            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+            const oscillator = state.audioContext.createOscillator();
+            const gain = state.audioContext.createGain();
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
+            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
             oscillator.connect(gain);
             gain.connect(state.audioContext.destination);
             oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.5); [cite: 149]
+            oscillator.stop(state.audioContext.currentTime + 0.5);
         }
         function showToast(message) {
-            const toast = document.getElementById('toast'); [cite: 149]
-            toast.textContent = message; [cite: 150]
-            toast.classList.add('show'); [cite: 150]
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 3000); [cite: 151]
+            }, 3000);
         }
     </script>
 </body>
