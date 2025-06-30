@@ -281,6 +281,53 @@
                 width: 100%;
             }
         }
+        
+        /* --- NOVOS ESTILOS PARA VÍDEO FLUTUANTE --- */
+
+        /* Estilo para o contêiner do vídeo quando estiver no modo flutuante */
+        #videoContainer.video-flutuante {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40vw; /* Ocupa 40% da largura da tela */
+            max-width: 350px; /* Garante que não fique muito grande em telas largas */
+            height: auto;
+            aspect-ratio: 1 / 1; /* Mantém o formato quadrado */
+            z-index: 1001; /* Garante que fique acima dos outros elementos */
+            border: 2px solid #fff;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+            border-radius: 8px; [cite_start]/* [cite: 5] */
+            overflow: hidden; /* Garante que o vídeo não ultrapasse as bordas arredondadas */
+            margin-bottom: 0; /* Remove a margem original quando flutuante */
+        }
+
+        /* Ajusta o elemento de vídeo para preencher seu novo contêiner flutuante */
+        #videoContainer.video-flutuante #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cobre todo o espaço sem distorcer a imagem */
+        }
+        
+        /* Ajustes para telas pequenas (mobile) */
+        @media (max-width: 640px) {
+            #videoContainer.video-flutuante {
+                top: 8px;
+                left: 8px;
+                right: 8px;
+                width: calc(100% - 16px); /* Largura total com pequenas margens */
+                max-width: none;
+                aspect-ratio: 4 / 3; /* Proporção mais retangular para mobile */
+            }
+
+            .actions-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .actions-container button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -387,12 +434,10 @@
             updateProductList();
         });
 
-        // --- CÓDIGO CORRIGIDO ---
         function initEventListeners() {
             document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
             document.getElementById('loadTestData').addEventListener('click', loadTestData);
             document.getElementById('startCamera').addEventListener('click', startCamera);
-            // O listener para 'takePhoto' foi removido pois o escaneamento agora é contínuo
             document.getElementById('stopCamera').addEventListener('click', stopCamera);
             document.getElementById('addProduct').addEventListener('click', addProductManually);
             document.getElementById('exportImage').addEventListener('click', exportAsImage);
@@ -443,20 +488,21 @@
             showToast('Dados de teste carregados com sucesso');
         }
 
-        // --- FUNÇÃO STARTCAMERA CORRIGIDA ---
         async function startCamera() {
             try {
-                // Prepara a interface, escondendo e mostrando os botões corretos
-                document.getElementById('videoContainer').classList.remove('hidden');
+                const videoContainer = document.getElementById('videoContainer');
+                
+                // Adiciona a classe para o estilo flutuante e exibe o contêiner
+                videoContainer.classList.add('video-flutuante');
+                videoContainer.classList.remove('hidden'); [cite_start]// [cite: 82]
+
                 document.getElementById('startCamera').classList.add('hidden');
                 document.getElementById('stopCamera').classList.remove('hidden');
-                // Garante que o botão de foto manual (agora obsoleto) esteja escondido
                 document.getElementById('takePhoto').classList.add('hidden');
 
                 state.codeReader = new ZXing.BrowserMultiFormatReader();
                 const video = document.getElementById('video');
 
-                // Inicia o processo de escaneamento contínuo
                 state.codeReader.decodeFromConstraints({
                     video: {
                         facingMode: 'environment',
@@ -464,14 +510,10 @@
                         height: { ideal: 720 }
                     }
                 }, video, (result, err) => {
-                    // Esta função (callback) será chamada para cada quadro de vídeo
                     if (result) {
-                        // Se um código for encontrado com sucesso
                         handleScannedCode(result.text);
                     }
                     if (err && !(err instanceof ZXing.NotFoundException)) {
-                        // Se ocorrer um erro que NÃO SEJA 'NotFoundException'
-                        // (NotFoundException é normal e esperado quando nenhum código está na tela)
                         console.error('Erro de decodificação:', err);
                         showToast('Erro ao ler o código.');
                     }
@@ -486,20 +528,20 @@
             }
         }
         
-        // --- FUNÇÃO TAKEPHOTOANDSCAN REMOVIDA, POIS NÃO É MAIS NECESSÁRIA ---
-
-        // --- FUNÇÃO STOPCAMERA CORRIGIDA ---
         function stopCamera() {
             if (state.codeReader) {
-                // Interrompe o loop de decodificação contínua e libera a câmera
                 state.codeReader.reset();
                 state.codeReader = null;
             }
             
-            // Redefine a interface do usuário para o estado inicial
-            document.getElementById('videoContainer').classList.add('hidden');
+            const videoContainer = document.getElementById('videoContainer');
+            
+            // Remove a classe flutuante e esconde o contêiner
+            videoContainer.classList.remove('video-flutuante');
+            videoContainer.classList.add('hidden'); [cite_start]// [cite: 102]
+
             document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('takePhoto').classList.add('hidden'); // Mantém oculto
+            document.getElementById('takePhoto').classList.add('hidden');
             document.getElementById('stopCamera').classList.add('hidden');
             showToast('Câmera parada.');
         }
@@ -508,6 +550,7 @@
         function addProductManually() {
             const codeInput = document.getElementById('barcodeInput');
             const code = codeInput.value.trim();
+
 
             if (code) {
                 handleScannedCode(code);
@@ -557,8 +600,6 @@
 
                 productList.innerHTML = state.products.map(product => {
                     const isComplete = product.scannedQty === product.expectedQty;
-                    const isOver = product.scannedQty > product.expectedQty;
-                    const isUnder = product.scannedQty < product.expectedQty && product.scannedQty > 0;
                     
                     let statusClass = '';
                     let statusIcon = '';
