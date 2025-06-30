@@ -227,13 +227,47 @@
         #video {
             width: 100%;
             border-radius: 8px;
+            background-color: #000;
         }
         
         .camera-overlay {
             position: absolute;
-            inset: 0;
-            border: 4px solid rgba(59, 130, 246, 0.5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 40%;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
             pointer-events: none;
+        }
+        
+        .camera-overlay::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 2px;
+            background-color: #ef4444;
+            animation: scan 2s ease-in-out infinite;
+        }
+        
+        @keyframes scan {
+            0%, 100% { top: -2px; }
+            50% { top: calc(100% - 2px); }
+        }
+        
+        .camera-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
         }
         
         .toast {
@@ -249,10 +283,24 @@
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             font-size: 0.875rem;
+            max-width: 90vw;
+            text-align: center;
         }
         
         .toast.show {
             opacity: 1;
+        }
+        
+        .toast.success {
+            background-color: #10b981;
+        }
+        
+        .toast.error {
+            background-color: #ef4444;
+        }
+        
+        .toast.warning {
+            background-color: #f59e0b;
         }
         
         @media (max-width: 640px) {
@@ -266,6 +314,15 @@
             }
             
             .actions-container button {
+                width: 100%;
+            }
+            
+            .flex.items-center {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .flex.items-center button {
                 width: 100%;
             }
         }
@@ -296,8 +353,9 @@
                 </button>
             </div>
             <div id="videoContainer" class="hidden">
-                <video id="video" muted playsinline></video>
+                <video id="video" muted playsinline autoplay></video>
                 <div class="camera-overlay"></div>
+                <div class="camera-status" id="cameraStatus">Carregando câmera...</div>
             </div>
             <div class="flex items-center">
                 <input id="barcodeInput" type="text" placeholder="Digite o código manualmente" 
@@ -355,14 +413,18 @@
 
     <script>
         const state = {
-            products: JSON.parse(localStorage.getItem('products')) || [],
-            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
+            products: [],
+            scannedProducts: [],
             codeReader: null,
-            audioContext: null
+            audioContext: null,
+            scanning: false,
+            lastScannedCode: null,
+            lastScannedTime: 0
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             initEventListeners();
+            loadStoredData();
             updateProductList();
         });
 
@@ -375,30 +437,52 @@
             document.getElementById('clearAll').addEventListener('click', clearAll);
         }
 
+        function loadStoredData() {
+            try {
+                const storedProducts = JSON.parse(localStorage.getItem('products') || '[]');
+                const storedScanned = JSON.parse(localStorage.getItem('scannedProducts') || '[]');
+                state.products = storedProducts;
+                state.scannedProducts = storedScanned;
+            } catch (error) {
+                console.error('Erro ao carregar dados salvos:', error);
+                state.products = [];
+                state.scannedProducts = [];
+            }
+        }
+
         function handleCsvUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
             reader.onload = (e) => {
-                const text = e.target.result;
-                state.products = parseCsv(text);
-                state.scannedProducts = [];
-                saveState();
-                updateProductList();
-                showToast('Lista de produtos carregada com sucesso');
+                try {
+                    const text = e.target.result;
+                    state.products = parseCsv(text);
+                    state.scannedProducts = [];
+                    saveState();
+                    updateProductList();
+                    showToast('Lista de produtos carregada com sucesso', 'success');
+                } catch (error) {
+                    console.error('Erro ao processar CSV:', error);
+                    showToast('Erro ao processar arquivo CSV', 'error');
+                }
             };
             reader.readAsText(file);
         }
 
         function parseCsv(text) {
-            return text.split('\n')
-                .slice(1)
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+            if (lines.length < 2) {
+                throw new Error('Arquivo CSV deve ter pelo menos um cabeçalho e uma linha de dados');
+            }
+            
+            return lines.slice(1)
                 .map(line => {
-                    const [code, name, expectedQty] = line.split(',');
+                    const [code, name, expectedQty] = line.split(',').map(item => item.trim());
                     return {
-                        code: (code || '').trim(),
-                        name: (name || '').trim(),
+                        code: code || '',
+                        name: name || '',
                         expectedQty: parseInt(expectedQty) || 1,
                         scannedQty: 0
                     };
@@ -414,55 +498,130 @@
 987654321098,Produto Delta,1
 321654987321,Produto Épsilon,4`;
             
-            state.products = parseCsv(testData);
-            state.scannedProducts = [];
-            saveState();
-            updateProductList();
-            showToast('Dados de teste carregados');
+            try {
+                state.products = parseCsv(testData);
+                state.scannedProducts = [];
+                saveState();
+                updateProductList();
+                showToast('Dados de teste carregados', 'success');
+            } catch (error) {
+                console.error('Erro ao carregar dados de teste:', error);
+                showToast('Erro ao carregar dados de teste', 'error');
+            }
         }
 
         async function startCamera() {
             try {
                 const video = document.getElementById('video');
-                document.getElementById('videoContainer').classList.remove('hidden');
+                const videoContainer = document.getElementById('videoContainer');
+                const cameraStatus = document.getElementById('cameraStatus');
+                
+                // Mostra o container de vídeo
+                videoContainer.classList.remove('hidden');
                 document.getElementById('startCamera').classList.add('hidden');
                 document.getElementById('stopCamera').classList.remove('hidden');
+                
+                cameraStatus.textContent = 'Solicitando acesso à câmera...';
 
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                });
+                // Solicita acesso à câmera com configurações otimizadas
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    }
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
-                video.play();
-
-                state.codeReader = new ZXing.BrowserMultiFormatReader();
-                state.codeReader.decodeFromVideoElement(video, (result, err) => {
-                    if (result) {
-                        handleScannedCode(result.text);
-                    }
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.error('Erro no leitor:', err);
-                    }
+                
+                // Aguarda o vídeo estar pronto
+                await new Promise((resolve) => {
+                    video.addEventListener('loadedmetadata', resolve, { once: true });
                 });
+                
+                await video.play();
+                cameraStatus.textContent = 'Câmera ativa - Aponte para o código';
+
+                // Inicializa o leitor de códigos
+                state.codeReader = new ZXing.BrowserMultiFormatReader();
+                state.scanning = true;
+                
+                // Inicia a leitura contínua
+                startContinuousScanning();
+                
+                showToast('Câmera ativada com sucesso', 'success');
+                
             } catch (error) {
                 console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
+                let errorMessage = 'Erro ao acessar a câmera';
+                
+                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                    errorMessage = 'Permissão de câmera negada. Verifique as configurações do navegador.';
+                } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                    errorMessage = 'Nenhuma câmera encontrada no dispositivo.';
+                } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+                    errorMessage = 'Câmera está sendo usada por outro aplicativo.';
+                } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+                    errorMessage = 'Configurações da câmera não suportadas.';
+                }
+                
+                showToast(errorMessage, 'error');
                 stopCamera();
             }
         }
 
+        function startContinuousScanning() {
+            if (!state.scanning || !state.codeReader) return;
+            
+            const video = document.getElementById('video');
+            
+            state.codeReader.decodeFromVideoElement(video, (result, error) => {
+                if (result && state.scanning) {
+                    const code = result.text;
+                    const currentTime = Date.now();
+                    
+                    // Evita leituras duplicadas muito rápidas (debounce de 1 segundo)
+                    if (state.lastScannedCode !== code || currentTime - state.lastScannedTime > 1000) {
+                        state.lastScannedCode = code;
+                        state.lastScannedTime = currentTime;
+                        handleScannedCode(code);
+                    }
+                }
+                
+                if (error && !(error instanceof ZXing.NotFoundException)) {
+                    console.error('Erro na leitura:', error);
+                }
+                
+                // Continua escaneando se ainda estiver ativo
+                if (state.scanning) {
+                    setTimeout(() => startContinuousScanning(), 100);
+                }
+            });
+        }
+
         function stopCamera() {
+            state.scanning = false;
+            
             if (state.codeReader) {
-                state.codeReader.reset();
+                try {
+                    state.codeReader.reset();
+                } catch (error) {
+                    console.error('Erro ao resetar leitor:', error);
+                }
                 state.codeReader = null;
             }
             
             const video = document.getElementById('video');
             if (video.srcObject) {
-                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject.getTracks().forEach(track => {
+                    try {
+                        track.stop();
+                    } catch (error) {
+                        console.error('Erro ao parar track:', error);
+                    }
+                });
+                video.srcObject = null;
             }
             
             document.getElementById('videoContainer').classList.add('hidden');
@@ -477,16 +636,19 @@
             if (code) {
                 handleScannedCode(code);
                 codeInput.value = '';
+                codeInput.focus();
             }
         }
 
         function handleScannedCode(code) {
+            console.log('Código escaneado:', code);
+            
             const product = state.products.find(p => p.code === code);
             
             if (product) {
                 // Verifica se já atingiu a quantidade esperada
                 if (product.scannedQty >= product.expectedQty) {
-                    showToast(`❌ ${product.name} já completado (${product.scannedQty}/${product.expectedQty})`);
+                    showToast(`❌ ${product.name} já completado (${product.scannedQty}/${product.expectedQty})`, 'warning');
                     playErrorSound();
                     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
                     return;
@@ -501,14 +663,16 @@
                 
                 // Verifica se completou
                 if (product.scannedQty === product.expectedQty) {
-                    showToast(`✅ ${product.name} completado!`);
+                    showToast(`✅ ${product.name} completado!`, 'success');
+                    if ('vibrate' in navigator) navigator.vibrate([200]);
                 } else {
-                    showToast(`✔ ${product.name} escaneado (${product.scannedQty}/${product.expectedQty})`);
+                    showToast(`✔ ${product.name} escaneado (${product.scannedQty}/${product.expectedQty})`, 'success');
+                    if ('vibrate' in navigator) navigator.vibrate([100]);
                 }
             } else {
                 // Produto não encontrado
                 playErrorSound();
-                showToast('⚠️ Código não encontrado na lista');
+                showToast(`⚠️ Código "${code}" não encontrado na lista`, 'error');
                 if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             }
         }
@@ -535,14 +699,14 @@
                     const isUnder = product.scannedQty < product.expectedQty;
                     
                     let statusClass = 'status-ok';
-                    let statusIcon = '✓ (Completo)';
+                    let statusIcon = '✓';
                     
                     if (isOver) {
                         statusClass = 'status-warning';
-                        statusIcon = '⚠️ (Excesso)';
+                        statusIcon = '⚠️';
                     } else if (isUnder) {
                         statusClass = 'status-error';
-                        statusIcon = '⚠️ (Faltando)';
+                        statusIcon = '❌';
                     }
                     
                     return `
@@ -552,8 +716,7 @@
                                 <div class="product-code">${product.code}</div>
                             </div>
                             <span class="product-status ${statusClass}">
-                                ${product.scannedQty || 0}/${product.expectedQty}
-                                ${statusIcon}
+                                ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon}
                             </span>
                         </li>
                     `;
@@ -575,8 +738,6 @@
             
             // Altera a cor da barra de progresso
             const progressBar = document.getElementById('progressBar');
-            progressBar.className = 'progress-bar';
-            
             if (progressPercent === 100 && problemCount === 0) {
                 progressBar.style.backgroundColor = '#10b981'; // Verde
             } else if (progressPercent === 100) {
@@ -587,8 +748,12 @@
         }
 
         function saveState() {
-            localStorage.setItem('products', JSON.stringify(state.products));
-            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+            try {
+                localStorage.setItem('products', JSON.stringify(state.products));
+                localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+            }
         }
 
         function clearAll() {
@@ -596,66 +761,99 @@
                 stopCamera();
                 state.products = [];
                 state.scannedProducts = [];
-                localStorage.removeItem('products');
-                localStorage.removeItem('scannedProducts');
+                
+                try {
+                    localStorage.removeItem('products');
+                    localStorage.removeItem('scannedProducts');
+                } catch (error) {
+                    console.error('Erro ao limpar dados:', error);
+                }
                 
                 document.getElementById('csvInput').value = '';
                 document.getElementById('barcodeInput').value = '';
                 updateProductList();
                 
-                showToast('Dados limpos com sucesso');
+                showToast('Dados limpos com sucesso', 'success');
             }
         }
 
         function playBeep() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                if (!state.audioContext) {
+                    state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (state.audioContext.state === 'suspended') {
+                    state.audioContext.resume();
+                }
+                
+                const oscillator = state.audioContext.createOscillator();
+                const gain = state.audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
+                gain.gain.setValueAtTime(0.3, state.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
+                
+                oscillator.connect(gain);
+                gain.connect(state.audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(state.audioContext.currentTime + 0.3);
+            } catch (error) {
+                console.error('Erro ao reproduzir som:', error);
             }
-            
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
-            
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.3);
         }
 
         function playErrorSound() {
-            if (!state.audioContext) {
-                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                if (!state.audioContext) {
+                    state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                if (state.audioContext.state === 'suspended') {
+                    state.audioContext.resume();
+                }
+                
+                const oscillator = state.audioContext.createOscillator();
+                const gain = state.audioContext.createGain();
+                
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
+                gain.gain.setValueAtTime(0.3, state.audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
+                
+                oscillator.connect(gain);
+                gain.connect(state.audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(state.audioContext.currentTime + 0.5);
+            } catch (error) {
+                console.error('Erro ao reproduzir som de erro:', error);
             }
-            
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
-            
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.5);
         }
 
-        function showToast(message) {
+        function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.classList.add('show');
+            toast.className = `toast show ${type}`;
             
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
+
+        // Previne o zoom em inputs no iOS
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        // Melhora a experiência em dispositivos móveis
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
     </script>
 </body>
 </html>
