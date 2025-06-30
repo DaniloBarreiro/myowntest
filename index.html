@@ -266,29 +266,7 @@
         .toast.show {
             opacity: 1;
         }
-        
-        #videoContainer.video-flutuante {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            width: 40vw;
-            max-width: 350px;
-            height: auto;
-            aspect-ratio: 1 / 1;
-            z-index: 1001;
-            border: 2px solid #fff;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 0;
-        }
 
-        #videoContainer.video-flutuante #video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
         @media (max-width: 640px) {
             .container {
                 padding: 8px;
@@ -302,18 +280,460 @@
             .actions-container button {
                 width: 100%;
             }
-
-            #videoContainer.video-flutuante {
-                top: 8px;
-                left: 8px;
-                right: 8px;
-                width: calc(100% - 16px);
-                max-width: none;
-                aspect-ratio: 4 / 3;
-            }
         }
     </style>
 </head>
 
 <body>
-    <div id="toast" class="toast">
+    <div id="toast" class="toast"></div>
+
+    <div class="container">
+        <header class="text-center">
+            <h1>📱 Inventário Mobile</h1>
+            <p class="subtitle">Escaneie produtos para verificar a carga</p>
+        </header>
+
+        <section>
+            <label for="csvInput" class="block">Carregar Lista CSV</label>
+            <input id="csvInput" type="file" accept=".csv">
+            <p class="text-sm">Formato esperado: Código,Nome,Quantidade (uma linha por produto)</p>
+        </section>
+
+        <section>
+            <div class="flex justify-between mb-4">
+                <button id="startCamera" class="btn-primary">
+                    📷 
+                    Iniciar Câmera
+                </button>
+                <button id="takePhoto" class="btn-success hidden">
+                    📸 Ler Código
+                </button>
+                <button id="stopCamera" class="btn-danger hidden">
+                    ⏹️ Parar Câmera
+                </button>
+            </div>
+            <div id="videoContainer" class="hidden">
+                <video id="video" muted playsinline></video>
+                <div class="camera-overlay"></div>
+             </div>
+            <div class="flex items-center">
+                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
+                    onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
+                <button id="addProduct" class="btn-success ml-2">
+                    ➕ Adicionar
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Progresso da Verificação</h2>
+            <div class="progress-container">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span
+                    id="totalCount">0</span>)</p>
+            <div class="stats-grid">
+                <div>
+                    <p class="stat-value"><span id="scannedCount">0</span></p>
+                    <p>Escaneados</p>
+                </div>
+                <div>
+                    <p class="stat-value"><span id="expectedCount">0</span></p>
+                    <p>Esperados</p>
+                </div>
+                <div>
+                    <p class="stat-value"><span id="okCount">0</span> ✓</p>
+                    <p>OK</p>
+                </div>
+                <div>
+                    <p class="stat-value"><span id="problemCount">0</span> ⚠️</p>
+                    <p>Problemas</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>📦 Produtos</h2>
+            <div id="noProducts" class="text-center py-4">
+                <p class="text-xl">📦</p>
+                <p>Carregue um CSV e escaneie os produtos!</p>
+            </div>
+            <ul id="productList" class="hidden"></ul>
+        </section>
+
+        <section class="actions-container flex justify-between gap-2">
+            <button id="loadTestData" class="btn-warning">
+                📊 Carregar Dados Teste
+            </button>
+            <button id="exportImage" class="btn-secondary">
+                🖼️ Exportar Relatório
+            </button>
+            <button id="clearAll" class="btn-danger">
+                🗑️ Limpar Tudo
+            </button>
+        </section>
+    </div>
+
+    <script>
+        const state = {
+            products: JSON.parse(localStorage.getItem('products')) || [],
+            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
+            codeReader: null,
+            audioContext: null,
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initEventListeners();
+            updateProductList();
+        });
+
+        // --- CÓDIGO CORRIGIDO ---
+        function initEventListeners() {
+            document.getElementById('csvInput').addEventListener('change', handleCsvUpload);
+            document.getElementById('loadTestData').addEventListener('click', loadTestData);
+            document.getElementById('startCamera').addEventListener('click', startCamera);
+            // O listener para 'takePhoto' foi removido pois o escaneamento agora é contínuo
+            document.getElementById('stopCamera').addEventListener('click', stopCamera);
+            document.getElementById('addProduct').addEventListener('click', addProductManually);
+            document.getElementById('exportImage').addEventListener('click', exportAsImage);
+            document.getElementById('clearAll').addEventListener('click', clearAll);
+        }
+
+        function handleCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                state.products = parseCsv(text);
+                state.scannedProducts = [];
+                saveState();
+                updateProductList();
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCsv(text) {
+            return text.split('\n')
+                .slice(1)
+                .map(line => {
+                    const [code, name, expectedQty] = line.split(',');
+                    return {
+                        code: (code || '').trim(),
+                        name: (name || '').trim(),
+                        expectedQty: parseInt(expectedQty) || 1,
+                        scannedQty: 0
+                    };
+                })
+                .filter(p => p.code && p.name);
+        }
+
+        function loadTestData() {
+            const testData = `code,name,expectedQty
+123456789012,Produto A,5
+987654321098,Produto B,3
+456789123456,Produto C,2
+789123456789,Produto D,1
+321654987321,Produto E,4`;
+            state.products = parseCsv(testData);
+            state.scannedProducts = [];
+            saveState();
+            updateProductList();
+            showToast('Dados de teste carregados com sucesso');
+        }
+
+        // --- FUNÇÃO STARTCAMERA CORRIGIDA ---
+        async function startCamera() {
+            try {
+                // Prepara a interface, escondendo e mostrando os botões corretos
+                document.getElementById('videoContainer').classList.remove('hidden');
+                document.getElementById('startCamera').classList.add('hidden');
+                document.getElementById('stopCamera').classList.remove('hidden');
+                // Garante que o botão de foto manual (agora obsoleto) esteja escondido
+                document.getElementById('takePhoto').classList.add('hidden');
+
+                state.codeReader = new ZXing.BrowserMultiFormatReader();
+                const video = document.getElementById('video');
+
+                // Inicia o processo de escaneamento contínuo
+                state.codeReader.decodeFromConstraints({
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                }, video, (result, err) => {
+                    // Esta função (callback) será chamada para cada quadro de vídeo
+                    if (result) {
+                        // Se um código for encontrado com sucesso
+                        handleScannedCode(result.text);
+                    }
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        // Se ocorrer um erro que NÃO SEJA 'NotFoundException'
+                        // (NotFoundException é normal e esperado quando nenhum código está na tela)
+                        console.error('Erro de decodificação:', err);
+                        showToast('Erro ao ler o código.');
+                    }
+                });
+
+                showToast('Câmera iniciada. Aponte para um código de barras.');
+
+            } catch (error) {
+                console.error('Erro ao acessar a câmera:', error);
+                showToast('Erro ao acessar a câmera. Verifique as permissões.');
+                stopCamera();
+            }
+        }
+        
+        // --- FUNÇÃO TAKEPHOTOANDSCAN REMOVIDA, POIS NÃO É MAIS NECESSÁRIA ---
+
+        // --- FUNÇÃO STOPCAMERA CORRIGIDA ---
+        function stopCamera() {
+            if (state.codeReader) {
+                // Interrompe o loop de decodificação contínua e libera a câmera
+                state.codeReader.reset();
+                state.codeReader = null;
+            }
+            
+            // Redefine a interface do usuário para o estado inicial
+            document.getElementById('videoContainer').classList.add('hidden');
+            document.getElementById('startCamera').classList.remove('hidden');
+            document.getElementById('takePhoto').classList.add('hidden'); // Mantém oculto
+            document.getElementById('stopCamera').classList.add('hidden');
+            showToast('Câmera parada.');
+        }
+
+
+        function addProductManually() {
+            const codeInput = document.getElementById('barcodeInput');
+            const code = codeInput.value.trim();
+
+            if (code) {
+                handleScannedCode(code);
+                codeInput.value = '';
+            }
+        }
+
+        function handleScannedCode(code) {
+            const product = state.products.find(p => p.code === code);
+            if (product) {
+                if (product.scannedQty >= product.expectedQty) {
+                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
+                    playErrorSound();
+                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                    return;
+                }
+
+                product.scannedQty = (product.scannedQty || 0) + 1;
+                state.scannedProducts.push(code);
+                saveState();
+                updateProductList();
+                playBeep();
+
+                if (product.scannedQty === product.expectedQty) {
+                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
+                }
+            } else {
+                playErrorSound();
+                showToast('⚠️ Produto não encontrado na lista');
+                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+            }
+        }
+
+        function updateProductList() {
+            const productList = document.getElementById('productList');
+            const noProducts = document.getElementById('noProducts');
+
+            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
+            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
+            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
+            const problemCount = state.products.filter(p => p.scannedQty !== p.expectedQty && p.scannedQty > 0).length;
+            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+
+            if (state.products.length > 0) {
+                noProducts.classList.add('hidden');
+                productList.classList.remove('hidden');
+
+                productList.innerHTML = state.products.map(product => {
+                    const isComplete = product.scannedQty === product.expectedQty;
+                    const isOver = product.scannedQty > product.expectedQty;
+                    const isUnder = product.scannedQty < product.expectedQty && product.scannedQty > 0;
+                    
+                    let statusClass = '';
+                    let statusIcon = '';
+
+                    if(product.scannedQty === product.expectedQty) {
+                        statusClass = 'status-ok';
+                        statusIcon = '✓ (Completo)';
+                    } else if (product.scannedQty > product.expectedQty) {
+                        statusClass = 'status-warning';
+                        statusIcon = '⚠️ (Excesso)';
+                    } else {
+                        statusClass = 'status-error';
+                        statusIcon = '(Faltando)';
+                    }
+
+
+                    return `
+                        <li class="${isComplete ? 'product-complete' : ''}">
+                            <div class="product-info">
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-code">${product.code}</div>
+                            </div>
+                            <span class="product-status ${statusClass}">
+                                ${product.scannedQty || 0}/${product.expectedQty}
+                                ${statusIcon}
+                            </span>
+                        </li>
+                    `;
+                }).join('');
+            } else {
+                noProducts.classList.remove('hidden');
+                productList.classList.add('hidden');
+            }
+
+            document.getElementById('scannedCount').textContent = scannedQty;
+            document.getElementById('expectedCount').textContent = totalQty;
+            document.getElementById('okCount').textContent = okCount;
+            document.getElementById('problemCount').textContent = problemCount;
+            document.getElementById('foundCount').textContent = scannedQty;
+            document.getElementById('totalCount').textContent = totalQty;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+        }
+
+        function saveState() {
+            localStorage.setItem('products', JSON.stringify(state.products));
+            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+        }
+
+        async function exportAsImage() {
+            if (state.products.length === 0) {
+                showToast('Nenhum produto carregado para exportar');
+                return;
+            }
+
+            try {
+                showToast('Gerando imagem...');
+                const exportElement = document.createElement('div');
+                exportElement.className = 'export-container';
+                exportElement.style.background = 'white';
+                exportElement.style.padding = '20px';
+                exportElement.style.borderRadius = '8px';
+                exportElement.style.maxWidth = '800px';
+                exportElement.style.margin = '0 auto';
+
+                const title = document.createElement('h1');
+                title.textContent = 'Relatório de Inventário';
+                title.style.textAlign = 'center';
+                title.style.marginBottom = '16px';
+                title.style.fontSize = '1.5rem';
+                exportElement.appendChild(title);
+
+                const date = document.createElement('p');
+                date.textContent = new Date().toLocaleString();
+                date.style.textAlign = 'center';
+                date.style.marginBottom = '24px';
+                date.style.color = '#666';
+                exportElement.appendChild(date);
+
+                const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
+                progressSection.style.marginBottom = '24px';
+                exportElement.appendChild(progressSection);
+
+                const productList = document.getElementById('productList').cloneNode(true);
+                productList.style.maxHeight = 'none';
+                productList.style.overflow = 'visible';
+                exportElement.appendChild(productList);
+
+                document.body.appendChild(exportElement);
+
+                const canvas = await html2canvas(exportElement, {
+                    scale: 2,
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true
+                });
+
+                document.body.removeChild(exportElement);
+
+                const link = document.createElement('a');
+                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                showToast('Imagem exportada com sucesso');
+            } catch (error) {
+                console.error('Erro ao exportar imagem:', error);
+                showToast('Erro ao gerar imagem');
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
+                stopCamera();
+                state.products = [];
+                state.scannedProducts = [];
+                localStorage.removeItem('products');
+                localStorage.removeItem('scannedProducts');
+
+                document.getElementById('csvInput').value = '';
+                document.getElementById('barcodeInput').value = '';
+                updateProductList();
+
+                showToast('Todos os dados foram limpos');
+            }
+        }
+
+        function playBeep() {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = state.audioContext.createOscillator();
+            const gain = state.audioContext.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
+            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
+
+            oscillator.connect(gain);
+            gain.connect(state.audioContext.destination);
+
+            oscillator.start();
+            oscillator.stop(state.audioContext.currentTime + 0.3);
+        }
+
+        function playErrorSound() {
+            if (!state.audioContext) {
+                state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = state.audioContext.createOscillator();
+            const gain = state.audioContext.createGain();
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
+            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
+
+            oscillator.connect(gain);
+            gain.connect(state.audioContext.destination);
+
+            oscillator.start();
+            oscillator.stop(state.audioContext.currentTime + 0.5);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
