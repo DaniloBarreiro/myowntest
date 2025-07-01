@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificador de Carga</title>
     <style>
-        /* CSS Combinado */
+        /* CSS (sem alterações, mas incluído para o arquivo ser completo) */
         :root {
             --primary-color: #005A9C;
             --secondary-color: #f4f4f4;
@@ -195,6 +195,7 @@
             width: 100%;
             box-sizing: border-box;
             text-align: center;
+            transition: opacity 0.3s;
         }
         .result-success { color: #155724; background-color: var(--light-green); border: 1px solid #c3e6cb; }
         .result-error { color: #721c24; background-color: var(--light-red); border: 1px solid #f5c6cb; }
@@ -398,16 +399,17 @@
         </div>
     </div>
 
+    <!-- Sons -->
     <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-    <audio id="error-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+    <!-- MODIFICAÇÃO: Som de advertência para erros e duplicados -->
+    <audio id="warning-sound" src="https://actions.google.com/sounds/v1/basic_sounds/bell_notification.ogg" preload="auto"></audio>
+
 
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     
     <script>
-        // JavaScript Combinado
         document.addEventListener('DOMContentLoaded', () => {
 
-            // === BANCO DE DADOS FALSO PARA SIMULAÇÃO ===
             const fakeDatabase = {
                 users: {
                     "joao.silva": { password: "123", name: "João Silva" },
@@ -424,12 +426,10 @@
                         { id: "item-45088626967", ordem_parada: "1", produto_codigo: "45088626967", endereco: "Alameda dos Anjos, 789 - Indaiá, Caraguatatuba", referencias: "Deixar com o vizinho", scanned: false },
                         { id: "item-45083357047", ordem_parada: "2", produto_codigo: "45083357047", endereco: "Rua Teste, 999 - Massaguaçu, Caraguatatuba", referencias: "Cuidado com o cão", scanned: false }
                     ],
-                    "motorista3": [] // Motorista sem rota
+                    "motorista3": []
                 }
             };
-            // === FIM DO BANCO DE DADOS FALSO ===
-
-            // Elementos da UI
+           
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app');
             const loginButton = document.getElementById('loginButton');
@@ -445,31 +445,29 @@
             const progressText = document.getElementById('progressText');
             const qrReaderPlaceholder = document.getElementById('qr-reader-placeholder');
 
-            // Modal
             const manualEntryModal = document.getElementById('manualEntryModal');
             const closeModalButton = document.querySelector('.close-button');
             const manualCodeInput = document.getElementById('manualCodeInput');
             const submitManualCode = document.getElementById('submitManualCode');
             
-            // Sons
             const successSound = document.getElementById('success-sound');
-            const errorSound = document.getElementById('error-sound');
+            // MODIFICAÇÃO: Referência ao novo som de advertência
+            const warningSound = document.getElementById('warning-sound');
 
             let routeData = [];
             let html5QrCode;
             let currentUsername = null;
+            // MODIFICAÇÃO: Flag para controlar o cooldown da leitura
+            let isScanCooldown = false;
             
-            // --- LÓGICA DE LOGIN E LOGOUT ---
             loginButton.addEventListener('click', handleLogin);
             logoutButton.addEventListener('click', handleLogout);
 
-            // Permitir login com a tecla Enter
             document.getElementById('password').addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') {
                     handleLogin();
                 }
             });
-
 
             function handleLogin() {
                 const username = document.getElementById('username').value.trim();
@@ -507,14 +505,10 @@
             function loadUserRoute(username) {
                 const originalRoute = fakeDatabase.routes[username] || [];
                 routeData = JSON.parse(JSON.stringify(originalRoute));
-                
                 html5QrCode = new Html5Qrcode("qr-reader");
-                
                 renderFullList();
                 updateProgress();
             }
-            
-            // --- LÓGICA DO APP PRINCIPAL ---
             
             manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
             closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
@@ -526,7 +520,6 @@
                 }
             });
             startScanButton.addEventListener('click', startScanner);
-
 
             function renderFullList() {
                 fullRouteListDiv.innerHTML = '';
@@ -569,13 +562,15 @@
                 const percentage = Math.round((scannedCount / routeData.length) * 100);
                 progressBar.style.width = `${percentage}%`;
                 progressText.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`;
+
                 if (percentage === 100) {
                     displayFeedback("🎉 Carga Completa!", "success", false);
                     if (html5QrCode && html5QrCode.isScanning) {
                         html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
+                         startScanButton.textContent = "Carga Verificada";
+                         qrReaderPlaceholder.style.display = 'flex';
                     }
                     startScanButton.disabled = true;
-                    startScanButton.textContent = "Carga Verificada";
                 }
             }
 
@@ -595,23 +590,33 @@
             });
 
             function validateCode(code) {
+                // MODIFICAÇÃO: Verifica se o cooldown está ativo. Se sim, ignora a leitura.
+                if (isScanCooldown) {
+                    return;
+                }
+                // MODIFICAÇÃO: Ativa o cooldown e define um tempo para desativá-lo.
+                isScanCooldown = true;
+                setTimeout(() => { isScanCooldown = false; }, 1500); // 1.5 segundos de espera
+
                 const foundItem = routeData.find(item => item.produto_codigo === code);
                 if (foundItem) {
                     if (!foundItem.scanned) {
                         foundItem.scanned = true;
                         successSound.play();
                         displayFeedback(`Código ${code} OK!`, "success");
-                        // Chamar renderFullList() força a atualização da lista visualmente
                         const itemElement = document.getElementById(foundItem.id);
                         if(itemElement) {
                              itemElement.querySelector('.status-indicator').classList.add('scanned');
                         }
                         updateProgress();
                     } else {
+                        // MODIFICAÇÃO: Toca som de advertência para item duplicado
+                        warningSound.play();
                         displayFeedback(`Código ${code} já foi verificado.`, "info");
                     }
                 } else {
-                    errorSound.play();
+                    // MODIFICAÇÃO: Toca som de advertência para item inválido
+                    warningSound.play();
                     displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
                 }
             }
@@ -630,24 +635,14 @@
                 startScanButton.textContent = "Carregando...";
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
                 
-                html5QrCode.start({ facingMode: "environment" }, config, 
-                    (decodedText, decodedResult) => {
-                        // Sucesso na leitura
-                        validateCode(decodedText);
-                        // Pausa o scanner para evitar múltiplas leituras do mesmo código
-                        if (html5QrCode.isScanning) {
-                            html5QrCode.stop();
-                            startScanButton.textContent = "📷 Iniciar Leitura";
-                            qrReaderPlaceholder.style.display = 'flex';
-                        }
-                    }, 
-                    (errorMessage) => {
-                        // Erro de leitura (ignora os mais comuns)
-                         if (!errorMessage.includes("NotFoundException")) {
-                            console.warn(`QR Code scan error: ${errorMessage}`);
-                         }
-                    }
-                ).then(() => {
+                // MODIFICAÇÃO: A função de sucesso agora apenas chama 'validateCode'
+                // A câmera não é mais parada aqui.
+                const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                    validateCode(decodedText);
+                };
+                
+                html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+                .then(() => {
                     startScanButton.disabled = false;
                     startScanButton.textContent = "Parar Leitura";
                 }).catch(err => {
@@ -662,7 +657,6 @@
                 scanResultEl.innerHTML = message;
                 scanResultEl.className = `result-${type}`;
                 
-                // Limpar a classe após a animação de desaparecimento, se houver
                 if (autoClear) {
                     setTimeout(() => {
                         scanResultEl.innerHTML = '';
@@ -676,7 +670,6 @@
                 toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder';
             }
         });
-
     </script>
 </body>
 </html>
