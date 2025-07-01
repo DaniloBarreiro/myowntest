@@ -85,7 +85,7 @@
             </div>
             <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="completedCount">0</span>/<span id="totalCount">0</span>)</p>
             <div class="stats-grid">
-                <div> <p class="stat-value"><span id="completedStat">0</span></p> <p>Concluídos</p> </div>
+                <div> <p class="stat-value"><span id="completedStat">0</span></p> <p>Concluídos</p> d>
                 <div> <p class="stat-value"><span id="pendingStat">0</span></p> <p>Pendentes</p> </div>
             </div>
         </section>
@@ -139,16 +139,35 @@
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
                         const textContent = await page.getTextContent();
-                        text += textContent.items.map(item => item.str).join(' ');
+                        const yThreshold = 5;
+                        const sortedItems = textContent.items.sort((a, b) => {
+                            if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
+                                return b.transform[5] - a.transform[5];
+                            }
+                            return a.transform[4] - b.transform[4];
+                        });
+                        let lastY = -1;
+                        for (const item of sortedItems) {
+                            if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
+                                text += '\n';
+                            }
+                            text += item.str + ' ';
+                            lastY = item.transform[5];
+                        }
+                        text += '\n';
                     }
                 } else {
                     showToast("Formato de arquivo não suportado.");
                     return;
                 }
                 state.roteiros = parseDocumentText(text);
+                if(state.roteiros.length === 0){
+                    showToast('Nenhum dado de roteiro encontrado no arquivo.');
+                } else {
+                    showToast('Roteiro carregado com sucesso!');
+                }
                 saveState();
                 updateUi();
-                showToast('Roteiro carregado com sucesso!');
             } catch (error) {
                 console.error("Erro ao ler arquivo:", error);
                 showToast("Erro: Não foi possível processar o arquivo.");
@@ -156,35 +175,31 @@
         }
         
         function parseDocumentText(text) {
-            const roteiros = [];
-            // Regex para encontrar "id:", "rota:" e "parada:" com seus valores
-            const idRegex = /id:\s*(\S+)/gi;
-            const rotaRegex = /rota:\s*(\S+)/gi;
-            const paradaRegex = /parada:\s*(\S+)/gi;
-
-            // Encontra todos os IDs, que servem como âncora para cada roteiro
-            const ids = [...text.matchAll(idRegex)];
+            const lines = text.split('\n');
+            const data = [];
             
-            ids.forEach((idMatch, index) => {
-                const id = idMatch[1];
-                // Define a fatia de texto para procurar (do início deste ID até o início do próximo)
-                const startIndex = idMatch.index;
-                const endIndex = (index + 1 < ids.length) ? ids[index + 1].index : text.length;
-                const textSlice = text.substring(startIndex, endIndex);
+            // Remove a primeira linha se parecer um cabeçalho
+            const headerKeywords = ['id', 'ruta', 'parada', 'rota', 'código'];
+            const firstLine = (lines[0] || '').toLowerCase();
+            const hasHeader = headerKeywords.some(key => firstLine.includes(key));
+            const dataLines = hasHeader ? lines.slice(1) : lines;
 
-                // Procura por rota e parada APENAS dentro desta fatia de texto
-                const rotaMatch = textSlice.match(rotaRegex);
-                const paradaMatch = textSlice.match(paradaRegex);
+            for (const line of dataLines) {
+                if (!line.trim()) continue;
 
-                roteiros.push({
-                    id: id,
-                    rota: rotaMatch ? rotaMatch[0].split(/:\s*/)[1] : 'N/A',
-                    parada: paradaMatch ? paradaMatch[0].split(/:\s*/)[1] : 'N/A',
-                    status: 'Pendente'
-                });
-            });
+                // Divide por vírgula se for um CSV, ou por múltiplos espaços se for texto
+                const parts = line.includes(',') ? line.split(',').map(p => p.trim()) : line.trim().split(/\s+/);
 
-            return roteiros;
+                if (parts.length >= 3) {
+                    data.push({
+                        id: parts[0],
+                        rota: parts[1],
+                        parada: parts[2],
+                        status: 'Pendente'
+                    });
+                }
+            }
+            return data;
         }
 
         function handleScan(scannedId) {
@@ -249,9 +264,9 @@
             } else {
                 noRoteiros.classList.remove('hidden');
                 roteiroList.classList.add('hidden');
+                roteiroList.innerHTML = '';
             }
 
-            // Update stats
             const total = state.roteiros.length;
             const completed = state.roteiros.filter(r => r.status === 'Concluído').length;
             const pending = total - completed;
@@ -313,19 +328,13 @@
             showToast('Câmera parada.');
         }
         
-        // --- FUNÇÕES DE SOM E EXPORTAÇÃO (sem alterações) ---
         async function exportAsImage() {
             if (state.roteiros.length === 0) { showToast('Nenhum roteiro para exportar'); return; }
             showToast('Gerando imagem...');
-            // Esconde os botões para um relatório mais limpo
             const elementsToHide = document.querySelectorAll('.actions-container, section:nth-of-type(2)');
             elementsToHide.forEach(el => el.style.display = 'none');
-            
             const canvas = await html2canvas(document.querySelector('.container'), { scale: 2 });
-            
-            // Mostra os botões novamente
             elementsToHide.forEach(el => el.style.display = 'flex');
-
             const link = document.createElement('a');
             link.download = `relatorio-roteiro-${new Date().toISOString().slice(0, 10)}.png`;
             link.href = canvas.toDataURL('image/png');
