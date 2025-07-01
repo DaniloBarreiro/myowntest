@@ -15,18 +15,7 @@
             --light-green: #d4edda;
             --light-red: #f8d7da;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--secondary-color); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
         #login-screen { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; background-color: var(--secondary-color); }
         .login-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
@@ -46,7 +35,6 @@
         #qr-reader-placeholder { width: 100%; aspect-ratio: 1/1; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; color: #6c757d; font-size: 1.2em; border-radius: 8px; text-align: center; border: 2px dashed #ced4da; }
         #scanner-controls { text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
         #scanner-controls button { padding: 12px 15px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; flex-grow: 1; transition: opacity 0.2s; }
-        #scanner-controls button:hover { opacity: 0.9; }
         #scanner-controls button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
         #scan-result { margin-top: 15px; font-weight: bold; padding: 12px; border-radius: 5px; width: 100%; box-sizing: border-box; text-align: center; transition: opacity 0.3s; }
         .result-success { color: #155724; background-color: var(--light-green); border: 1px solid #c3e6cb; }
@@ -61,7 +49,6 @@
         #progressText { position: absolute; width: 100%; text-align: center; font-weight: bold; color: #000; text-shadow: 0 0 2px white; }
         #full-route-list { margin-top: 10px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px; }
         .route-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-        .route-item:last-child { border-bottom: none; }
         .item-info { flex-grow: 1; }
         .item-info p { margin: 0; line-height: 1.4; }
         .status-indicator { width: 25px; height: 25px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin-left: 15px; transition: background-color 0.3s ease; }
@@ -69,57 +56,20 @@
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); padding-top: 60px; }
         .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 8px; text-align: center; }
         .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
-        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
         #manualCodeInput { width: calc(100% - 24px); padding: 12px; margin-top: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; font-size: 1.1em; }
         #submitManualCode { width: 100%; padding: 12px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; background-color: var(--primary-color); }
     </style>
 </head>
 <body>
     <div id="login-screen">
-        <div class="login-container">
-            <h1>Verificador de Carga</h1>
-            <p>Entre com seu usuário e senha.</p>
-            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
-            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
-            <button id="loginButton">Entrar</button>
-            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
-        </div>
+        <div class="login-container"><h1>Verificador de Carga</h1><p>Entre com seu usuário e senha.</p><input type="text" id="username" placeholder="Usuário" autocomplete="username"><input type="password" id="password" placeholder="Senha" autocomplete="current-password"><button id="loginButton">Entrar</button><p id="login-error" class="hidden">Usuário ou senha inválidos.</p></div>
     </div>
-
     <main id="app" class="hidden">
-        <header class="app-header">
-            <h2 id="welcomeMessage"></h2>
-            <button id="logoutButton">Sair</button>
-        </header>
-        <section id="scanner-section">
-            <div id="qr-reader"><div id="qr-reader-placeholder">A câmera aparecerá aqui</div></div>
-            <div id="scanner-controls">
-                <button id="startScanButton">📷 Iniciar Leitura</button>
-                <button id="manualEntryButton">⌨️ Digitar Código</button>
-            </div>
-             <p id="scan-result"></p>
-        </section>
-        <section id="route-list-section">
-            <div class="list-header">
-                <h2>Pacotes da Rota</h2>
-                <button id="toggle-list-button">Esconder</button>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar"></div>
-                <span id="progressText">0%</span>
-            </div>
-            <div id="full-route-list"></div>
-        </section>
+        <header class="app-header"><h2 id="welcomeMessage"></h2><button id="logoutButton">Sair</button></header>
+        <section id="scanner-section"><div id="qr-reader"><div id="qr-reader-placeholder">A câmera aparecerá aqui</div></div><div id="scanner-controls"><button id="startScanButton">📷 Iniciar Leitura</button><button id="manualEntryButton">⌨️ Digitar Código</button></div><p id="scan-result"></p></section>
+        <section id="route-list-section"><div class="list-header"><h2>Pacotes da Rota</h2><button id="toggle-list-button">Esconder</button></div><div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div><span id="progressText">0%</span></div><div id="full-route-list"></div></section>
     </main>
-
-    <div id="manualEntryModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">×</span>
-            <h3>Digitar Código do Pacote</h3>
-            <input type="text" id="manualCodeInput" placeholder="Insira o código aqui...">
-            <button id="submitManualCode">Verificar Código</button>
-        </div>
-    </div>
+    <div id="manualEntryModal" class="modal"><div class="modal-content"><span class="close-button">×</span><h3>Digitar Código do Pacote</h3><input type="text" id="manualCodeInput" placeholder="Insira o código aqui..."><button id="submitManualCode">Verificar Código</button></div></div>
 
     <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
     <audio id="warning-sound" src="https://actions.google.com/sounds/v1/basic_sounds/bell_notification.ogg" preload="auto"></audio>
@@ -129,33 +79,14 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            // ================== CORREÇÃO APLICADA AQUI ==================
-            // O objeto fakeDatabase foi restaurado com todos os seus dados no início do script.
             const fakeDatabase = {
-                users: {
-                    "joao.silva": { password: "123", name: "João Silva" },
-                    "maria.souza": { password: "456", name: "Maria Souza" },
-                    "motorista3": { password: "789", name: "Carlos Pereira" }
-                },
-                routes: {
-                    "joao.silva": [
-                        { id: "item-45089597300", ordem_parada: "1", produto_codigo: "45089597300", endereco: "Rua das Flores, 123 - Centro, Caraguatatuba", referencias: "Portão azul", scanned: false },
-                        { id: "item-45088281415", ordem_parada: "2", produto_codigo: "45088281415", endereco: "Av. Principal, 456 - Poiares, Caraguatatuba", referencias: "Entregar na portaria", scanned: false },
-                        { id: "item-45088285089", ordem_parada: "2", produto_codigo: "45088285089", endereco: "Av. Principal, 456 - Poiares, Caraguatatuba", referencias: "Caixa frágil", scanned: false }
-                    ],
-                    "maria.souza": [
-                        { id: "item-45088626967", ordem_parada: "1", produto_codigo: "45088626967", endereco: "Alameda dos Anjos, 789 - Indaiá, Caraguatatuba", referencias: "Deixar com o vizinho", scanned: false },
-                        { id: "item-45083357047", ordem_parada: "2", produto_codigo: "45083357047", endereco: "Rua Teste, 999 - Massaguaçu, Caraguatatuba", referencias: "Cuidado com o cão", scanned: false }
-                    ],
-                    "motorista3": []
-                }
+                users: {"joao.silva":{password:"123",name:"João Silva"},"maria.souza":{password:"456",name:"Maria Souza"},"motorista3":{password:"789",name:"Carlos Pereira"}},
+                routes: {"joao.silva":[{id:"item-45089597300",ordem_parada:"1",produto_codigo:"45089597300",endereco:"Rua das Flores, 123 - Centro, Caraguatatuba",referencias:"Portão azul",scanned:!1},{id:"item-45088281415",ordem_parada:"2",produto_codigo:"45088281415",endereco:"Av. Principal, 456 - Poiares, Caraguatatuba",referencias:"Entregar na portaria",scanned:!1},{id:"item-45088285089",ordem_parada:"2",produto_codigo:"45088285089",endereco:"Av. Principal, 456 - Poiares, Caraguatatuba",referencias:"Caixa frágil",scanned:!1}],"maria.souza":[{id:"item-45088626967",ordem_parada:"1",produto_codigo:"45088626967",endereco:"Alameda dos Anjos, 789 - Indaiá, Caraguatatuba",referencias:"Deixar com o vizinho",scanned:!1},{id:"item-45083357047",ordem_parada:"2",produto_codigo:"45083357047",endereco:"Rua Teste, 999 - Massaguaçu, Caraguatatuba",referencias:"Cuidado com o cão",scanned:!1}],"motorista3":[]}
             };
-            // ================== FIM DA CORREÇÃO ==================
 
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app');
             const loginButton = document.getElementById('loginButton');
-            // ... (o resto das variáveis permanece igual)
             const logoutButton = document.getElementById('logoutButton');
             const loginError = document.getElementById('login-error');
             const welcomeMessage = document.getElementById('welcomeMessage');
@@ -178,32 +109,28 @@
             let html5QrCode;
             let currentUsername = null;
             let isScanCooldown = false;
-            
+
+            // ================== NOVA SOLUÇÃO DE ÁUDIO ==================
+            // Função que destrava os sons e se remove.
+            function unlockAudio() {
+                console.log("Audio unlocked by user interaction.");
+                successSound.load();
+                warningSound.load();
+                // Remove os ouvintes para que esta função não seja chamada novamente.
+                document.removeEventListener('click', unlockAudio);
+                document.removeEventListener('touchstart', unlockAudio);
+            }
+
+            // Adiciona ouvintes para o primeiro clique ou toque do usuário.
+            document.addEventListener('click', unlockAudio);
+            document.addEventListener('touchstart', unlockAudio);
+            // ================== FIM DA NOVA SOLUÇÃO ==================
+
             loginButton.addEventListener('click', handleLogin);
             logoutButton.addEventListener('click', handleLogout);
             document.getElementById('password').addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') handleLogin();
             });
-
-            function initAudio() {
-                successSound.volume = 0;
-                warningSound.volume = 0;
-                const p1 = successSound.play();
-                const p2 = warningSound.play();
-                
-                // Tratar promessas para evitar erros no console
-                if (p1 !== undefined) p1.catch(() => {});
-                if (p2 !== undefined) p2.catch(() => {});
-
-                setTimeout(() => {
-                    successSound.pause();
-                    warningSound.pause();
-                    successSound.currentTime = 0;
-                    warningSound.currentTime = 0;
-                    successSound.volume = 1;
-                    warningSound.volume = 1;
-                }, 50);
-            }
 
             function handleLogin() {
                 const username = document.getElementById('username').value.trim();
@@ -211,7 +138,6 @@
                 const user = fakeDatabase.users[username];
 
                 if (user && user.password === password) {
-                    initAudio(); 
                     currentUsername = username;
                     loginScreen.classList.add('hidden');
                     appScreen.classList.remove('hidden');
@@ -221,6 +147,21 @@
                 } else {
                     loginError.classList.remove('hidden');
                 }
+            }
+
+            function handleLogout() {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
+                }
+                currentUsername = null; routeData = [];
+                appScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                scanResultEl.innerHTML = '';
+                scanResultEl.className = '';
+                startScanButton.disabled = false;
+                startScanButton.textContent = "📷 Iniciar Leitura";
             }
 
             function loadUserRoute(username) {
@@ -233,103 +174,10 @@
 
             function playSound(soundElement) {
                 soundElement.currentTime = 0;
-                soundElement.play().catch(error => console.error(`Erro ao tocar som: ${error}`));
-            }
-            
-            // O resto do código JavaScript (funções de logout, validateCode, scanner, etc.)
-            // permanece exatamente o mesmo da versão anterior.
-            // ... (todo o resto do seu JS funcional aqui) ...
-
-            function handleLogout() {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
-                }
-                currentUsername = null;
-                routeData = [];
-                appScreen.classList.add('hidden');
-                loginScreen.classList.remove('hidden');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                scanResultEl.innerHTML = '';
-                scanResultEl.className = '';
-                startScanButton.disabled = false;
-                startScanButton.textContent = "📷 Iniciar Leitura";
-            }
-            
-            manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
-            closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
-            submitManualCode.addEventListener('click', processManualCode);
-            toggleListButton.addEventListener('click', toggleRouteList);
-            window.addEventListener('click', (event) => {
-                if (event.target == manualEntryModal) manualEntryModal.style.display = 'none';
-            });
-            startScanButton.addEventListener('click', startScanner);
-
-            function renderFullList() {
-                fullRouteListDiv.innerHTML = '';
-                if (routeData.length === 0) {
-                    fullRouteListDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>";
-                    return;
-                }
-
-                routeData.forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'route-item';
-                    itemDiv.id = item.id;
-                    const itemInfo = document.createElement('div');
-                    itemInfo.className = 'item-info';
-                    itemInfo.innerHTML = `<p><strong>Parada ${item.ordem_parada}:</strong> ${item.endereco}</p><p><small>Código: ${item.produto_codigo} | Ref: ${item.referencias}</small></p>`;
-                    const statusIndicator = document.createElement('div');
-                    statusIndicator.className = 'status-indicator';
-                    if (item.scanned) {
-                        statusIndicator.classList.add('scanned');
-                    }
-                    itemDiv.appendChild(itemInfo);
-                    itemDiv.appendChild(statusIndicator);
-                    fullRouteListDiv.appendChild(itemDiv);
+                soundElement.play().catch(error => {
+                    console.error(`Audio playback error: ${error}`);
                 });
             }
-
-            function updateProgress() {
-                if (routeData.length === 0) {
-                    progressBar.style.width = '0%';
-                    progressText.textContent = 'Nenhuma Rota';
-                    startScanButton.disabled = true;
-                    manualEntryButton.disabled = true;
-                    return;
-                }
-                
-                startScanButton.disabled = false;
-                manualEntryButton.disabled = false;
-                
-                const scannedCount = routeData.filter(item => item.scanned).length;
-                const percentage = Math.round((scannedCount / routeData.length) * 100);
-                progressBar.style.width = `${percentage}%`;
-                progressText.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`;
-
-                if (percentage === 100) {
-                    displayFeedback("🎉 Carga Completa!", "success", false);
-                    if (html5QrCode && html5QrCode.isScanning) {
-                        html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
-                         startScanButton.textContent = "Carga Verificada";
-                         qrReaderPlaceholder.style.display = 'flex';
-                    }
-                    startScanButton.disabled = true;
-                }
-            }
-
-            function processManualCode() {
-                const code = manualCodeInput.value.trim();
-                if (code) {
-                    validateCode(code);
-                    manualCodeInput.value = '';
-                    manualEntryModal.style.display = 'none';
-                }
-            }
-            
-            manualCodeInput.addEventListener('keyup', (event) => {
-                if(event.key === 'Enter') processManualCode();
-            });
 
             function validateCode(code) {
                 if (isScanCooldown) return;
@@ -343,9 +191,7 @@
                         playSound(successSound);
                         displayFeedback(`Código ${code} OK!`, "success");
                         const itemElement = document.getElementById(foundItem.id);
-                        if(itemElement) {
-                             itemElement.querySelector('.status-indicator').classList.add('scanned');
-                        }
+                        if(itemElement) itemElement.querySelector('.status-indicator').classList.add('scanned');
                         updateProgress();
                     } else {
                         playSound(warningSound);
@@ -356,7 +202,7 @@
                     displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
                 }
             }
-
+            
             function startScanner() {
                 if (html5QrCode && html5QrCode.isScanning) {
                     html5QrCode.stop().then(() => {
@@ -365,16 +211,11 @@
                     }).catch(err => console.error(err));
                     return;
                 }
-
                 qrReaderPlaceholder.style.display = 'none';
                 startScanButton.disabled = true;
                 startScanButton.textContent = "Carregando...";
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                
-                const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                    validateCode(decodedText);
-                };
-                
+                const qrCodeSuccessCallback = (decodedText) => validateCode(decodedText);
                 html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
                 .then(() => {
                     startScanButton.disabled = false;
@@ -387,22 +228,18 @@
                 });
             }
 
-            function displayFeedback(message, type, autoClear = true) {
-                scanResultEl.innerHTML = message;
-                scanResultEl.className = `result-${type}`;
-                
-                if (autoClear) {
-                    setTimeout(() => {
-                        scanResultEl.innerHTML = '';
-                        scanResultEl.className = '';
-                    }, 4000);
-                }
-            }
-            
-            function toggleRouteList() {
-                const isHidden = fullRouteListDiv.classList.toggle('hidden');
-                toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder';
-            }
+            // Demais funções sem alterações
+            manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
+            closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
+            submitManualCode.addEventListener('click', processManualCode);
+            toggleListButton.addEventListener('click', toggleRouteList);
+            window.addEventListener('click', (event) => { if (event.target == manualEntryModal) manualEntryModal.style.display = 'none'; });
+            function renderFullList() { fullRouteListDiv.innerHTML = ''; if (routeData.length === 0) { fullRouteListDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>"; return; } routeData.forEach(item => { const itemDiv = document.createElement('div'); itemDiv.className = 'route-item'; itemDiv.id = item.id; const itemInfo = document.createElement('div'); itemInfo.className = 'item-info'; itemInfo.innerHTML = `<p><strong>Parada ${item.ordem_parada}:</strong> ${item.endereco}</p><p><small>Código: ${item.produto_codigo} | Ref: ${item.referencias}</small></p>`; const statusIndicator = document.createElement('div'); statusIndicator.className = 'status-indicator'; if (item.scanned) statusIndicator.classList.add('scanned'); itemDiv.appendChild(itemInfo); itemDiv.appendChild(statusIndicator); fullRouteListDiv.appendChild(itemDiv); }); }
+            function updateProgress() { if (routeData.length === 0) { progressBar.style.width = '0%'; progressText.textContent = 'Nenhuma Rota'; startScanButton.disabled = true; manualEntryButton.disabled = true; return; } startScanButton.disabled = false; manualEntryButton.disabled = false; const scannedCount = routeData.filter(item => item.scanned).length; const percentage = Math.round((scannedCount / routeData.length) * 100); progressBar.style.width = `${percentage}%`; progressText.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`; if (percentage === 100) { displayFeedback("🎉 Carga Completa!", "success", false); if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err)); startScanButton.textContent = "Carga Verificada"; qrReaderPlaceholder.style.display = 'flex'; } startScanButton.disabled = true; } }
+            function processManualCode() { const code = manualCodeInput.value.trim(); if (code) { validateCode(code); manualCodeInput.value = ''; manualEntryModal.style.display = 'none'; } }
+            manualCodeInput.addEventListener('keyup', (event) => { if(event.key === 'Enter') processManualCode(); });
+            function displayFeedback(message, type, autoClear = true) { scanResultEl.innerHTML = message; scanResultEl.className = `result-${type}`; if (autoClear) { setTimeout(() => { scanResultEl.innerHTML = ''; scanResultEl.className = ''; }, 4000); } }
+            function toggleRouteList() { const isHidden = fullRouteListDiv.classList.toggle('hidden'); toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder'; }
         });
     </script>
 </body>
