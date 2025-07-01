@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificador de Roteiro - Transportadora</title>
+    <title>Contador de Produtos - Transportadora</title>
     <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
 
@@ -21,34 +22,48 @@
         input[type="text"], input[type="file"] { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; margin-bottom: 12px; }
         button { padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
         .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
         .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
         .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
         .btn-warning { background-color: #f59e0b; color: white; }
+        .btn-warning:hover { background-color: #d97706; }
         .btn-secondary { background-color: #8b5cf6; color: white; }
+        .btn-secondary:hover { background-color: #7c3aed; }
         .flex { display: flex; }
         .justify-between { justify-content: space-between; }
         .items-center { align-items: center; }
         .hidden { display: none; }
-        #roteiroList { max-height: 400px; overflow-y: auto; list-style-type: none; }
-        .roteiro-item { padding: 12px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        .roteiro-item:last-child { border-bottom: none; }
-        .roteiro-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; flex-grow: 1; }
-        .info-block span { display: block; }
-        .info-label { font-size: 0.75rem; color: #6b7280; }
-        .info-value { font-weight: 500; }
-        .roteiro-status { font-weight: 600; white-space: nowrap; }
-        .status-completed { color: #10b981; }
-        .status-pending { color: #f59e0b; }
-        .roteiro-item.completed { background-color: rgba(16, 185, 129, 0.05); }
+        #productList { max-height: 300px; overflow-y: auto; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 8px 0; }
+        #productList li { padding: 8px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        #productList li:last-child { border-bottom: none; }
+        .product-info { flex: 1; overflow: hidden; }
+        .product-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .product-code { font-size: 0.75rem; color: #6b7280; }
+        .product-status { font-weight: 500; margin-left: 8px; white-space: nowrap; }
+        .status-ok { color: #10b981; }
+        .status-warning { color: #f59e0b; }
+        .status-error { color: #ef4444; }
+        .product-complete { opacity: 0.7; background-color: rgba(16, 185, 129, 0.1); }
         .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 8px; margin-bottom: 8px; }
         .progress-bar { height: 100%; border-radius: 4px; background-color: #10b981; transition: width 0.3s; }
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center; margin-top: 12px; }
         .stat-value { font-weight: 600; font-size: 1.25rem; }
+        #videoContainer { position: relative; margin-bottom: 16px; }
+        #video { width: 100%; border-radius: 8px; }
+        .camera-overlay { position: absolute; inset: 0; border: 4px solid rgba(59, 130, 246, 0.5); pointer-events: none; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #1f2937; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000; opacity: 0; transition: opacity 0.3s ease-in-out; font-size: 0.875rem; }
+        .toast.show { opacity: 1; }
+        
         #videoContainer.hidden { display: none; }
         #videoContainer.video-flutuante { display: block; position: fixed; top: 16px; right: 16px; width: 40vw; max-width: 350px; height: auto; aspect-ratio: 1 / 1; z-index: 1001; border: 2px solid #fff; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; margin-bottom: 0; }
         #videoContainer.video-flutuante #video { width: 100%; height: 100%; object-fit: cover; }
+        
         @media (max-width: 640px) {
-            .roteiro-info { grid-template-columns: 1fr; gap: 8px; }
+            .container { padding: 8px; }
+            .actions-container { flex-direction: column; gap: 8px; }
+            .actions-container button { width: 100%; }
             #videoContainer.video-flutuante { top: 8px; left: 8px; right: 8px; width: calc(100% - 16px); max-width: none; aspect-ratio: 4 / 3; }
         }
     </style>
@@ -57,12 +72,13 @@
     <div id="toast" class="toast"></div>
     <div class="container">
         <header class="text-center">
-            <h1>🚛 Verificador de Roteiro</h1>
-            <p class="subtitle">Carregue um arquivo e escaneie o ID da entrega</p>
+            <h1>📱 Inventário Mobile</h1>
+            <p class="subtitle">Escaneie produtos para verificar a carga</p>
         </header>
         <section>
-            <label for="fileInput" class="block">Carregar Roteiro (CSV ou PDF)</label>
+            <label for="fileInput" class="block">Carregar Lista (CSV ou PDF)</label>
             <input id="fileInput" type="file" accept=".csv,.pdf">
+            <p class="text-sm">CSV: Código,Nome,Quantidade. PDF: texto simples com um produto por linha.</p>
         </section>
         <section>
             <div class="flex justify-between mb-4">
@@ -71,11 +87,12 @@
             </div>
             <div id="videoContainer" class="hidden">
                 <video id="video" muted playsinline></video>
+                <div class="camera-overlay"></div>
             </div>
             <div class="flex items-center">
-                <input id="manualInput" type="text" placeholder="Digitar ID da Entrega"
-                    onkeypress="if(event.key === 'Enter') document.getElementById('addManual').click()">
-                <button id="addManual" class="btn-success ml-2">➕ Verificar</button>
+                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
+                    onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
+                <button id="addProduct" class="btn-success ml-2">➕ Adicionar</button>
             </div>
         </section>
         <section>
@@ -83,21 +100,24 @@
             <div class="progress-container">
                 <div id="progressBar" class="progress-bar" style="width: 0%"></div>
             </div>
-            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="completedCount">0</span>/<span id="totalCount">0</span>)</p>
+            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span id="totalCount">0</span>)</p>
             <div class="stats-grid">
-                <div> <p class="stat-value"><span id="completedStat">0</span></p> <p>Concluídos</p> d>
-                <div> <p class="stat-value"><span id="pendingStat">0</span></p> <p>Pendentes</p> </div>
+                <div> <p class="stat-value"><span id="scannedCount">0</span></p> <p>Escaneados</p> </div>
+                <div> <p class="stat-value"><span id="expectedCount">0</span></p> <p>Esperados</p> </div>
+                <div> <p class="stat-value"><span id="okCount">0</span> ✓</p> <p>OK</p> </div>
+                <div> <p class="stat-value"><span id="problemCount">0</span> ⚠️</p> <p>Problemas</p> </div>
             </div>
         </section>
         <section>
-            <h2>📍 Roteiros</h2>
-            <div id="noRoteiros" class="text-center py-4">
+            <h2>📦 Produtos</h2>
+            <div id="noProducts" class="text-center py-4">
                 <p class="text-xl">📦</p>
-                <p>Carregue um arquivo para ver as entregas!</p>
+                <p>Carregue um arquivo e escaneie os produtos!</p>
             </div>
-            <ul id="roteiroList" class="hidden"></ul>
+            <ul id="productList" class="hidden"></ul>
         </section>
-        <section class="flex justify-between gap-2">
+        <section class="actions-container flex justify-between gap-2">
+            <button id="loadTestData" class="btn-warning">📊 Carregar Dados Teste</button>
             <button id="exportImage" class="btn-secondary">🖼️ Exportar Relatório</button>
             <button id="clearAll" class="btn-danger">🗑️ Limpar Tudo</button>
         </section>
@@ -107,20 +127,22 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
 
         const state = {
-            roteiros: JSON.parse(localStorage.getItem('roteiros')) || [],
+            products: JSON.parse(localStorage.getItem('products')) || [],
+            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
             codeReader: null,
             audioContext: null
         };
         document.addEventListener('DOMContentLoaded', () => {
             initEventListeners();
-            updateUi();
+            updateProductList();
         });
 
         function initEventListeners() {
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            document.getElementById('loadTestData').addEventListener('click', loadTestData);
             document.getElementById('startCamera').addEventListener('click', startCamera);
             document.getElementById('stopCamera').addEventListener('click', stopCamera);
-            document.getElementById('addManual').addEventListener('click', handleManualInput);
+            document.getElementById('addProduct').addEventListener('click', addProductManually);
             document.getElementById('exportImage').addEventListener('click', exportAsImage);
             document.getElementById('clearAll').addEventListener('click', clearAll);
         }
@@ -128,174 +150,117 @@
         async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             showToast('Lendo arquivo...');
-            let text = '';
-            try {
-                if (file.name.toLowerCase().endsWith('.csv')) {
-                    text = await file.text();
-                } else if (file.name.toLowerCase().endsWith('.pdf')) {
-                    const pdfData = new Uint8Array(await file.arrayBuffer());
-                    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-                    for (let i = 1; i <= pdf.numPages; i++) {
-                        const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    state.products = parseProductData(text);
+                    state.scannedProducts = [];
+                    saveState();
+                    updateProductList();
+                    showToast('Lista CSV carregada com sucesso!');
+                };
+                reader.readAsText(file);
+            } else if (file.name.toLowerCase().endsWith('.pdf')) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const pdfData = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                        let fullText = '';
                         const yThreshold = 5;
-                        const sortedItems = textContent.items.sort((a, b) => {
-                            if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
-                                return b.transform[5] - a.transform[5];
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            
+                            const sortedItems = textContent.items.sort((a, b) => {
+                                if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
+                                    return b.transform[5] - a.transform[5];
+                                }
+                                return a.transform[4] - b.transform[4];
+                            });
+
+                            let lastY = -1;
+                            let line = '';
+                            for (const item of sortedItems) {
+                                if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
+                                    fullText += line.trim() + '\n';
+                                    line = '';
+                                }
+                                line += item.str + ' ';
+                                lastY = item.transform[5];
                             }
-                            return a.transform[4] - b.transform[4];
-                        });
-                        let lastY = -1;
-                        for (const item of sortedItems) {
-                            if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
-                                text += '\n';
-                            }
-                            text += item.str + ' ';
-                            lastY = item.transform[5];
+                            fullText += line.trim() + '\n';
                         }
-                        text += '\n';
+                        
+                        state.products = parseProductData(fullText);
+                        state.scannedProducts = [];
+                        saveState();
+                        updateProductList();
+                        showToast('Lista PDF carregada com sucesso!');
+
+                    } catch (error) {
+                        console.error("Erro ao ler PDF:", error);
+                        showToast("Erro: Não foi possível ler o arquivo PDF.");
                     }
-                } else {
-                    showToast("Formato de arquivo não suportado.");
-                    return;
-                }
-                state.roteiros = parseDocumentText(text);
-                if(state.roteiros.length === 0){
-                    showToast('Nenhum dado de roteiro encontrado no arquivo.');
-                } else {
-                    showToast('Roteiro carregado com sucesso!');
-                }
-                saveState();
-                updateUi();
-            } catch (error) {
-                console.error("Erro ao ler arquivo:", error);
-                showToast("Erro: Não foi possível processar o arquivo.");
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                showToast("Formato de arquivo não suportado. Use CSV ou PDF.");
             }
         }
         
-        function parseDocumentText(text) {
+        // --- NOVA FUNÇÃO DE PARSE UNIVERSAL ---
+        function parseProductData(text) {
             const lines = text.split('\n');
-            const data = [];
-            
-            // Remove a primeira linha se parecer um cabeçalho
-            const headerKeywords = ['id', 'ruta', 'parada', 'rota', 'código'];
-            const firstLine = (lines[0] || '').toLowerCase();
-            const hasHeader = headerKeywords.some(key => firstLine.includes(key));
-            const dataLines = hasHeader ? lines.slice(1) : lines;
+            const dataLines = (lines[0] || '').toLowerCase().includes('código') || (lines[0] || '').toLowerCase().includes('code') ? lines.slice(1) : lines;
 
-            for (const line of dataLines) {
-                if (!line.trim()) continue;
+            return dataLines.map(line => {
+                line = line.trim();
+                if (!line) return null;
 
-                // Divide por vírgula se for um CSV, ou por múltiplos espaços se for texto
-                const parts = line.includes(',') ? line.split(',').map(p => p.trim()) : line.trim().split(/\s+/);
+                let code, name, expectedQty;
 
-                if (parts.length >= 3) {
-                    data.push({
-                        id: parts[0],
-                        rota: parts[1],
-                        parada: parts[2],
-                        status: 'Pendente'
-                    });
+                if (line.includes(',')) {
+                    [code, name, expectedQty] = line.split(',').map(item => item.trim());
+                } else {
+                    const parts = line.split(/\s+/);
+                    if (parts.length >= 3) {
+                        code = parts.shift();
+                        expectedQty = parts.pop();
+                        name = parts.join(' ');
+                    } else {
+                        return null;
+                    }
                 }
-            }
-            return data;
+
+                return {
+                    code: code || '',
+                    name: name || '',
+                    expectedQty: parseInt(expectedQty) || 1,
+                    scannedQty: 0
+                };
+            }).filter(p => p && p.code && p.name);
         }
 
-        function handleScan(scannedId) {
-            const roteiro = state.roteiros.find(r => r.id === scannedId);
-            if (roteiro) {
-                if (roteiro.status === 'Concluído') {
-                    showToast(`ID ${scannedId} já verificado.`);
-                    playErrorSound();
-                    return;
-                }
-                roteiro.status = 'Concluído';
-                showToast(`ID ${scannedId} verificado com sucesso!`);
-                playBeep();
-                saveState();
-                updateUi();
-            } else {
-                showToast(`ID ${scannedId} não encontrado no roteiro.`);
-                playErrorSound();
-            }
+        function loadTestData() {
+            const testData = `code,name,expectedQty
+123456789012,Produto A,5
+987654321098,Produto B,3
+456789123456,Produto C,2
+789123456789,Produto D,1
+321654987321,Produto E,4`;
+            state.products = parseProductData(testData); // Usando a nova função
+            state.scannedProducts = [];
+            saveState();
+            updateProductList();
+            showToast('Dados de teste carregados com sucesso');
         }
 
-        function handleManualInput() {
-            const input = document.getElementById('manualInput');
-            const id = input.value.trim();
-            if (id) {
-                handleScan(id);
-                input.value = '';
-            }
-        }
-        
-        function updateUi() {
-            const roteiroList = document.getElementById('roteiroList');
-            const noRoteiros = document.getElementById('noRoteiros');
-            
-            if (state.roteiros.length > 0) {
-                noRoteiros.classList.add('hidden');
-                roteiroList.classList.remove('hidden');
-                roteiroList.innerHTML = state.roteiros.map(r => {
-                    const isCompleted = r.status === 'Concluído';
-                    return `
-                        <li class="roteiro-item ${isCompleted ? 'completed' : ''}">
-                            <div class="roteiro-info">
-                                <div class="info-block">
-                                    <span class="info-label">ID</span>
-                                    <span class="info-value">${r.id}</span>
-                                </div>
-                                <div class="info-block">
-                                    <span class="info-label">ROTA</span>
-                                    <span class="info-value">${r.rota}</span>
-                                </div>
-                                <div class="info-block">
-                                    <span class="info-label">PARADA</span>
-                                    <span class="info-value">${r.parada}</span>
-                                </div>
-                            </div>
-                            <span class="roteiro-status ${isCompleted ? 'status-completed' : 'status-pending'}">
-                                ${isCompleted ? '✓ Concluído' : '🕒 Pendente'}
-                            </span>
-                        </li>
-                    `;
-                }).join('');
-            } else {
-                noRoteiros.classList.remove('hidden');
-                roteiroList.classList.add('hidden');
-                roteiroList.innerHTML = '';
-            }
-
-            const total = state.roteiros.length;
-            const completed = state.roteiros.filter(r => r.status === 'Concluído').length;
-            const pending = total - completed;
-            const progress = total > 0 ? (completed / total) * 100 : 0;
-
-            document.getElementById('totalCount').textContent = total;
-            document.getElementById('completedCount').textContent = completed;
-            document.getElementById('completedStat').textContent = completed;
-            document.getElementById('pendingStat').textContent = pending;
-            document.getElementById('progressBar').style.width = `${progress}%`;
-            document.getElementById('progressPercent').textContent = `${Math.round(progress)}%`;
-        }
-        
-        function saveState() {
-            localStorage.setItem('roteiros', JSON.stringify(state.roteiros));
-        }
-
-        function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados do roteiro?')) {
-                stopCamera();
-                state.roteiros = [];
-                localStorage.removeItem('roteiros');
-                document.getElementById('fileInput').value = '';
-                document.getElementById('manualInput').value = '';
-                updateUi();
-                showToast('Todos os dados foram limpos.');
-            }
-        }
-        
         async function startCamera() {
             try {
                 const videoContainer = document.getElementById('videoContainer');
@@ -306,12 +271,12 @@
                 state.codeReader = new ZXing.BrowserMultiFormatReader();
                 const video = document.getElementById('video');
                 await state.codeReader.decodeFromConstraints({
-                    video: { facingMode: 'environment' }
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
                 }, video, (result, err) => {
-                    if (result) { handleScan(result.text); }
+                    if (result) { handleScannedCode(result.text); }
                     if (err && !(err instanceof ZXing.NotFoundException)) { console.error('Erro de decodificação:', err); }
                 });
-                showToast('Câmera iniciada. Aponte para o código de ID.');
+                showToast('Câmera iniciada.');
             } catch (error) {
                 console.error('Erro ao acessar a câmera:', error);
                 showToast('Erro ao acessar a câmera. Verifique as permissões.');
@@ -327,19 +292,120 @@
             document.getElementById('stopCamera').classList.add('hidden');
             showToast('Câmera parada.');
         }
-        
+        function addProductManually() {
+            const codeInput = document.getElementById('barcodeInput');
+            const code = codeInput.value.trim();
+            if (code) { handleScannedCode(code); codeInput.value = ''; }
+        }
+        function handleScannedCode(code) {
+            const product = state.products.find(p => p.code === code);
+            if (product) {
+                if (product.scannedQty >= product.expectedQty) {
+                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
+                    playErrorSound();
+                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                    return;
+                }
+                product.scannedQty = (product.scannedQty || 0) + 1;
+                state.scannedProducts.push(code);
+                saveState();
+                updateProductList();
+                playBeep();
+                if (product.scannedQty === product.expectedQty) {
+                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
+                }
+            } else {
+                playErrorSound();
+                showToast('⚠️ Produto não encontrado na lista');
+                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+            }
+        }
+        function updateProductList() {
+            const productList = document.getElementById('productList');
+            const noProducts = document.getElementById('noProducts');
+            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
+            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
+            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
+            const problemCount = state.products.filter(p => p.scannedQty > 0 && p.scannedQty !== p.expectedQty).length;
+            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
+            if (state.products.length > 0) {
+                noProducts.classList.add('hidden');
+                productList.classList.remove('hidden');
+                productList.innerHTML = state.products.map(product => {
+                    const isComplete = product.scannedQty === product.expectedQty;
+                    let statusClass = '';
+                    let statusIcon = '';
+                    if(product.scannedQty === product.expectedQty) {
+                        statusClass = 'status-ok'; statusIcon = '✓ (Completo)';
+                    } else if (product.scannedQty > product.expectedQty) {
+                        statusClass = 'status-warning'; statusIcon = '⚠️ (Excesso)';
+                    } else if (product.scannedQty > 0) {
+                        statusClass = 'status-error'; statusIcon = '(Faltando)';
+                    }
+                    return `<li class="${isComplete ? 'product-complete' : ''}"> <div class="product-info"> <div class="product-name">${product.name}</div> <div class="product-code">${product.code}</div> </div> <span class="product-status ${statusClass}"> ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon} </span> </li>`;
+                }).join('');
+            } else {
+                noProducts.classList.remove('hidden');
+                productList.classList.add('hidden');
+            }
+            document.getElementById('scannedCount').textContent = scannedQty;
+            document.getElementById('expectedCount').textContent = totalQty;
+            document.getElementById('okCount').textContent = okCount;
+            document.getElementById('problemCount').textContent = problemCount;
+            document.getElementById('foundCount').textContent = scannedQty;
+            document.getElementById('totalCount').textContent = totalQty;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
+        }
+        function saveState() {
+            localStorage.setItem('products', JSON.stringify(state.products));
+            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
+        }
         async function exportAsImage() {
-            if (state.roteiros.length === 0) { showToast('Nenhum roteiro para exportar'); return; }
-            showToast('Gerando imagem...');
-            const elementsToHide = document.querySelectorAll('.actions-container, section:nth-of-type(2)');
-            elementsToHide.forEach(el => el.style.display = 'none');
-            const canvas = await html2canvas(document.querySelector('.container'), { scale: 2 });
-            elementsToHide.forEach(el => el.style.display = 'flex');
-            const link = document.createElement('a');
-            link.download = `relatorio-roteiro-${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            showToast('Relatório exportado com sucesso!');
+            if (state.products.length === 0) { showToast('Nenhum produto carregado para exportar'); return; }
+            try {
+                showToast('Gerando imagem...');
+                const exportElement = document.createElement('div');
+                exportElement.style.cssText = 'background: white; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto;';
+                const title = document.createElement('h1');
+                title.textContent = 'Relatório de Inventário';
+                title.style.cssText = 'text-align: center; margin-bottom: 16px; font-size: 1.5rem;';
+                exportElement.appendChild(title);
+                const date = document.createElement('p');
+                date.textContent = new Date().toLocaleString();
+                date.style.cssText = 'text-align: center; margin-bottom: 24px; color: #666;';
+                exportElement.appendChild(date);
+                const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
+                exportElement.appendChild(progressSection);
+                const productList = document.getElementById('productList').cloneNode(true);
+                productList.style.maxHeight = 'none';
+                productList.style.overflow = 'visible';
+                exportElement.appendChild(productList);
+                document.body.appendChild(exportElement);
+                const canvas = await html2canvas(exportElement, { scale: 2, logging: false, useCORS: true, allowTaint: true });
+                document.body.removeChild(exportElement);
+                const link = document.createElement('a');
+                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Imagem exportada com sucesso');
+            } catch (error) {
+                console.error('Erro ao exportar imagem:', error);
+                showToast('Erro ao gerar imagem');
+            }
+        }
+        function clearAll() {
+            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
+                stopCamera();
+                state.products = [];
+                state.scannedProducts = [];
+                localStorage.removeItem('products');
+                localStorage.removeItem('scannedProducts');
+                document.getElementById('fileInput').value = '';
+                document.getElementById('barcodeInput').value = '';
+                updateProductList();
+                showToast('Todos os dados foram limpos');
+            }
         }
         function playBeep() {
             if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -369,7 +435,6 @@
         }
         function showToast(message) {
             const toast = document.getElementById('toast');
-            if(!toast) return;
             toast.textContent = message;
             toast.classList.add('show');
             setTimeout(() => {
