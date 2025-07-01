@@ -3,444 +3,680 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contador de Produtos - Transportadora</title>
-    <script src="https://unpkg.com/@zxing/library@0.18.6/umd/index.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js"></script>
-
+    <title>Verificador de Carga</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6; color: #111827; line-height: 1.5; padding: 16px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        section { background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); padding: 16px; margin-bottom: 16px; }
-        h1, h2 { font-weight: 600; color: #111827; }
-        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 4px; }
-        h2 { font-size: 1.125rem; margin-bottom: 12px; }
-        .subtitle { color: #6b7280; font-size: 0.875rem; text-align: center; margin-bottom: 16px; }
-        input[type="text"], input[type="file"] { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.875rem; margin-bottom: 12px; }
-        button { padding: 8px 16px; border-radius: 4px; font-size: 0.875rem; font-weight: 500; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
-        .btn-primary { background-color: #3b82f6; color: white; }
-        .btn-primary:hover { background-color: #2563eb; }
-        .btn-danger { background-color: #ef4444; color: white; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-success { background-color: #10b981; color: white; }
-        .btn-success:hover { background-color: #059669; }
-        .btn-warning { background-color: #f59e0b; color: white; }
-        .btn-warning:hover { background-color: #d97706; }
-        .btn-secondary { background-color: #8b5cf6; color: white; }
-        .btn-secondary:hover { background-color: #7c3aed; }
-        .flex { display: flex; }
-        .justify-between { justify-content: space-between; }
-        .items-center { align-items: center; }
-        .hidden { display: none; }
-        #productList { max-height: 300px; overflow-y: auto; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin: 8px 0; }
-        #productList li { padding: 8px 0; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
-        #productList li:last-child { border-bottom: none; }
-        .product-info { flex: 1; overflow: hidden; }
-        .product-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .product-code { font-size: 0.75rem; color: #6b7280; }
-        .product-status { font-weight: 500; margin-left: 8px; white-space: nowrap; }
-        .status-ok { color: #10b981; }
-        .status-warning { color: #f59e0b; }
-        .status-error { color: #ef4444; }
-        .product-complete { opacity: 0.7; background-color: rgba(16, 185, 129, 0.1); }
-        .progress-container { width: 100%; background-color: #e5e7eb; border-radius: 4px; height: 8px; margin-bottom: 8px; }
-        .progress-bar { height: 100%; border-radius: 4px; background-color: #10b981; transition: width 0.3s; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: center; margin-top: 12px; }
-        .stat-value { font-weight: 600; font-size: 1.25rem; }
-        #videoContainer { position: relative; margin-bottom: 16px; }
-        #video { width: 100%; border-radius: 8px; }
-        .camera-overlay { position: absolute; inset: 0; border: 4px solid rgba(59, 130, 246, 0.5); pointer-events: none; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #1f2937; color: white; padding: 12px 24px; border-radius: 4px; z-index: 1000; opacity: 0; transition: opacity 0.3s ease-in-out; font-size: 0.875rem; }
-        .toast.show { opacity: 1; }
+        /* CSS Combinado */
+        :root {
+            --primary-color: #005A9C;
+            --secondary-color: #f4f4f4;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --text-color: #333;
+            --light-green: #d4edda;
+            --light-red: #f8d7da;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* === ESTILOS PARA TELA DE LOGIN === */
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--secondary-color);
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .login-container p {
+            color: #666;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .login-container button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            background-color: var(--success-color);
+            transition: opacity 0.2s;
+        }
+        .login-container button:hover {
+            opacity: 0.9;
+        }
+
+        #login-error {
+            color: var(--danger-color);
+            margin-top: 15px;
+        }
+
+        /* === ESTILOS DO APP PRINCIPAL === */
+        main#app {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .app-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+            color: var(--primary-color);
+        }
+
+        #logoutButton {
+            background-color: var(--danger-color);
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        #logoutButton:hover {
+            opacity: 0.9;
+        }
+
+        #scanner-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        #qr-reader {
+            width: 100%;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
         
-        #videoContainer.hidden { display: none; }
-        #videoContainer.video-flutuante { display: block; position: fixed; top: 16px; right: 16px; width: 40vw; max-width: 350px; height: auto; aspect-ratio: 1 / 1; z-index: 1001; border: 2px solid #fff; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); border-radius: 8px; overflow: hidden; margin-bottom: 0; }
-        #videoContainer.video-flutuante #video { width: 100%; height: 100%; object-fit: cover; }
+        #qr-reader-placeholder {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #6c757d;
+            font-size: 1.2em;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px dashed #ced4da;
+        }
         
-        @media (max-width: 640px) {
-            .container { padding: 8px; }
-            .actions-container { flex-direction: column; gap: 8px; }
-            .actions-container button { width: 100%; }
-            #videoContainer.video-flutuante { top: 8px; left: 8px; right: 8px; width: calc(100% - 16px); max-width: none; aspect-ratio: 4 / 3; }
+
+        #scanner-controls {
+            text-align: center;
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        #scanner-controls button {
+            padding: 12px 15px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            flex-grow: 1;
+            transition: opacity 0.2s;
+        }
+        #scanner-controls button:hover {
+            opacity: 0.9;
+        }
+        #scanner-controls button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        #scan-result {
+            margin-top: 15px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .result-success { color: #155724; background-color: var(--light-green); border: 1px solid #c3e6cb; }
+        .result-error { color: #721c24; background-color: var(--light-red); border: 1px solid #f5c6cb; }
+        .result-info { color: #0c5460; background-color: #d1ecf1; border: 1px solid #bee5eb; }
+
+
+        #route-list-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .list-header h2 { margin: 0; color: var(--primary-color);}
+        .list-header button {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            position: relative;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+
+        #progressText {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #000;
+            text-shadow: 0 0 2px white;
+        }
+
+        #full-route-list {
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        .route-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .route-item:last-child { border-bottom: none; }
+        .item-info { flex-grow: 1; }
+        .item-info p { margin: 0; line-height: 1.4; }
+        .status-indicator {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #ccc;
+            flex-shrink: 0;
+            margin-left: 15px;
+            transition: background-color 0.3s ease;
+        }
+        .status-indicator.scanned {
+            background-color: var(--success-color);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/></svg>');
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* === ESTILOS DO MODAL === */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover, .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        #manualCodeInput {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1.1em;
+        }
+
+        #submitManualCode {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <div id="toast" class="toast"></div>
-    <div class="container">
-        <header class="text-center">
-            <h1>📱 Inventário Mobile</h1>
-            <p class="subtitle">Escaneie produtos para verificar a carga</p>
-        </header>
-        <section>
-            <label for="fileInput" class="block">Carregar Lista (CSV ou PDF)</label>
-            <input id="fileInput" type="file" accept=".csv,.pdf">
-            <p class="text-sm">CSV: Código,Nome,Quantidade. PDF: texto simples com um produto por linha.</p>
-        </section>
-        <section>
-            <div class="flex justify-between mb-4">
-                <button id="startCamera" class="btn-primary">📷 Iniciar Câmera</button>
-                <button id="stopCamera" class="btn-danger hidden">⏹️ Parar Câmera</button>
-            </div>
-            <div id="videoContainer" class="hidden">
-                <video id="video" muted playsinline></video>
-                <div class="camera-overlay"></div>
-            </div>
-            <div class="flex items-center">
-                <input id="barcodeInput" type="text" placeholder="Código de Barras (Manual)"
-                    onkeypress="if(event.key === 'Enter') document.getElementById('addProduct').click()">
-                <button id="addProduct" class="btn-success ml-2">➕ Adicionar</button>
-            </div>
-        </section>
-        <section>
-            <h2>Progresso da Verificação</h2>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
-            </div>
-            <p class="text-sm"><span id="progressPercent">0%</span> concluído (<span id="foundCount">0</span>/<span id="totalCount">0</span>)</p>
-            <div class="stats-grid">
-                <div> <p class="stat-value"><span id="scannedCount">0</span></p> <p>Escaneados</p> </div>
-                <div> <p class="stat-value"><span id="expectedCount">0</span></p> <p>Esperados</p> </div>
-                <div> <p class="stat-value"><span id="okCount">0</span> ✓</p> <p>OK</p> </div>
-                <div> <p class="stat-value"><span id="problemCount">0</span> ⚠️</p> <p>Problemas</p> </div>
-            </div>
-        </section>
-        <section>
-            <h2>📦 Produtos</h2>
-            <div id="noProducts" class="text-center py-4">
-                <p class="text-xl">📦</p>
-                <p>Carregue um arquivo e escaneie os produtos!</p>
-            </div>
-            <ul id="productList" class="hidden"></ul>
-        </section>
-        <section class="actions-container flex justify-between gap-2">
-            <button id="loadTestData" class="btn-warning">📊 Carregar Dados Teste</button>
-            <button id="exportImage" class="btn-secondary">🖼️ Exportar Relatório</button>
-            <button id="clearAll" class="btn-danger">🗑️ Limpar Tudo</button>
-        </section>
+    <div id="login-screen">
+        <div class="login-container">
+            <h1>Verificador de Carga</h1>
+            <p>Entre com seu usuário e senha.</p>
+            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
+            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
+            <button id="loginButton">Entrar</button>
+            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
+        </div>
     </div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-
-        const state = {
-            products: JSON.parse(localStorage.getItem('products')) || [],
-            scannedProducts: JSON.parse(localStorage.getItem('scannedProducts')) || [],
-            codeReader: null,
-            audioContext: null
-        };
-        document.addEventListener('DOMContentLoaded', () => {
-            initEventListeners();
-            updateProductList();
-        });
-
-        function initEventListeners() {
-            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-            document.getElementById('loadTestData').addEventListener('click', loadTestData);
-            document.getElementById('startCamera').addEventListener('click', startCamera);
-            document.getElementById('stopCamera').addEventListener('click', stopCamera);
-            document.getElementById('addProduct').addEventListener('click', addProductManually);
-            document.getElementById('exportImage').addEventListener('click', exportAsImage);
-            document.getElementById('clearAll').addEventListener('click', clearAll);
-        }
-
-        async function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showToast('Lendo arquivo...');
-
-            if (file.name.toLowerCase().endsWith('.csv')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const text = e.target.result;
-                    state.products = parseProductData(text);
-                    state.scannedProducts = [];
-                    saveState();
-                    updateProductList();
-                    showToast('Lista CSV carregada com sucesso!');
-                };
-                reader.readAsText(file);
-            } else if (file.name.toLowerCase().endsWith('.pdf')) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const pdfData = new Uint8Array(e.target.result);
-                        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-                        let fullText = '';
-                        const yThreshold = 5;
-
-                        for (let i = 1; i <= pdf.numPages; i++) {
-                            const page = await pdf.getPage(i);
-                            const textContent = await page.getTextContent();
-                            
-                            const sortedItems = textContent.items.sort((a, b) => {
-                                if (Math.abs(a.transform[5] - b.transform[5]) > yThreshold) {
-                                    return b.transform[5] - a.transform[5];
-                                }
-                                return a.transform[4] - b.transform[4];
-                            });
-
-                            let lastY = -1;
-                            let line = '';
-                            for (const item of sortedItems) {
-                                if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > yThreshold) {
-                                    fullText += line.trim() + '\n';
-                                    line = '';
-                                }
-                                line += item.str + ' ';
-                                lastY = item.transform[5];
-                            }
-                            fullText += line.trim() + '\n';
-                        }
-                        
-                        state.products = parseProductData(fullText);
-                        state.scannedProducts = [];
-                        saveState();
-                        updateProductList();
-                        showToast('Lista PDF carregada com sucesso!');
-
-                    } catch (error) {
-                        console.error("Erro ao ler PDF:", error);
-                        showToast("Erro: Não foi possível ler o arquivo PDF.");
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                showToast("Formato de arquivo não suportado. Use CSV ou PDF.");
-            }
-        }
+    <main id="app" class="hidden">
+        <header class="app-header">
+            <h2 id="welcomeMessage"></h2>
+            <button id="logoutButton">Sair</button>
+        </header>
         
-        // --- NOVA FUNÇÃO DE PARSE UNIVERSAL ---
-        function parseProductData(text) {
-            const lines = text.split('\n');
-            const dataLines = (lines[0] || '').toLowerCase().includes('código') || (lines[0] || '').toLowerCase().includes('code') ? lines.slice(1) : lines;
+        <section id="scanner-section">
+            <div id="qr-reader">
+                 <div id="qr-reader-placeholder">A câmera aparecerá aqui</div>
+            </div>
+            <div id="scanner-controls">
+                <button id="startScanButton">📷 Iniciar Leitura</button>
+                <button id="manualEntryButton">⌨️ Digitar Código</button>
+            </div>
+             <p id="scan-result"></p>
+        </section>
 
-            return dataLines.map(line => {
-                line = line.trim();
-                if (!line) return null;
+        <section id="route-list-section">
+            <div class="list-header">
+                <h2>Pacotes da Rota</h2>
+                <button id="toggle-list-button">Esconder</button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <span id="progressText">0%</span>
+            </div>
+            <div id="full-route-list"></div>
+        </section>
+    </main>
 
-                let code, name, expectedQty;
+    <div id="manualEntryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h3>Digitar Código do Pacote</h3>
+            <input type="text" id="manualCodeInput" placeholder="Insira o código aqui...">
+            <button id="submitManualCode">Verificar Código</button>
+        </div>
+    </div>
 
-                if (line.includes(',')) {
-                    [code, name, expectedQty] = line.split(',').map(item => item.trim());
-                } else {
-                    const parts = line.split(/\s+/);
-                    if (parts.length >= 3) {
-                        code = parts.shift();
-                        expectedQty = parts.pop();
-                        name = parts.join(' ');
-                    } else {
-                        return null;
-                    }
+    <audio id="success-sound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+    <audio id="error-sound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <script>
+        // JavaScript Combinado
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // === BANCO DE DADOS FALSO PARA SIMULAÇÃO ===
+            const fakeDatabase = {
+                users: {
+                    "joao.silva": { password: "123", name: "João Silva" },
+                    "maria.souza": { password: "456", name: "Maria Souza" },
+                    "motorista3": { password: "789", name: "Carlos Pereira" }
+                },
+                routes: {
+                    "joao.silva": [
+                        { id: "item-45089597300", ordem_parada: "1", produto_codigo: "45089597300", endereco: "Rua das Flores, 123 - Centro, Caraguatatuba", referencias: "Portão azul", scanned: false },
+                        { id: "item-45088281415", ordem_parada: "2", produto_codigo: "45088281415", endereco: "Av. Principal, 456 - Poiares, Caraguatatuba", referencias: "Entregar na portaria", scanned: false },
+                        { id: "item-45088285089", ordem_parada: "2", produto_codigo: "45088285089", endereco: "Av. Principal, 456 - Poiares, Caraguatatuba", referencias: "Caixa frágil", scanned: false }
+                    ],
+                    "maria.souza": [
+                        { id: "item-45088626967", ordem_parada: "1", produto_codigo: "45088626967", endereco: "Alameda dos Anjos, 789 - Indaiá, Caraguatatuba", referencias: "Deixar com o vizinho", scanned: false },
+                        { id: "item-45083357047", ordem_parada: "2", produto_codigo: "45083357047", endereco: "Rua Teste, 999 - Massaguaçu, Caraguatatuba", referencias: "Cuidado com o cão", scanned: false }
+                    ],
+                    "motorista3": [] // Motorista sem rota
                 }
+            };
+            // === FIM DO BANCO DE DADOS FALSO ===
 
-                return {
-                    code: code || '',
-                    name: name || '',
-                    expectedQty: parseInt(expectedQty) || 1,
-                    scannedQty: 0
-                };
-            }).filter(p => p && p.code && p.name);
-        }
+            // Elementos da UI
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app');
+            const loginButton = document.getElementById('loginButton');
+            const logoutButton = document.getElementById('logoutButton');
+            const loginError = document.getElementById('login-error');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const startScanButton = document.getElementById('startScanButton');
+            const fullRouteListDiv = document.getElementById('full-route-list');
+            const scanResultEl = document.getElementById('scan-result');
+            const manualEntryButton = document.getElementById('manualEntryButton');
+            const toggleListButton = document.getElementById('toggle-list-button');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const qrReaderPlaceholder = document.getElementById('qr-reader-placeholder');
 
-        function loadTestData() {
-            const testData = `code,name,expectedQty
-123456789012,Produto A,5
-987654321098,Produto B,3
-456789123456,Produto C,2
-789123456789,Produto D,1
-321654987321,Produto E,4`;
-            state.products = parseProductData(testData); // Usando a nova função
-            state.scannedProducts = [];
-            saveState();
-            updateProductList();
-            showToast('Dados de teste carregados com sucesso');
-        }
+            // Modal
+            const manualEntryModal = document.getElementById('manualEntryModal');
+            const closeModalButton = document.querySelector('.close-button');
+            const manualCodeInput = document.getElementById('manualCodeInput');
+            const submitManualCode = document.getElementById('submitManualCode');
+            
+            // Sons
+            const successSound = document.getElementById('success-sound');
+            const errorSound = document.getElementById('error-sound');
 
-        async function startCamera() {
-            try {
-                const videoContainer = document.getElementById('videoContainer');
-                videoContainer.classList.add('video-flutuante');
-                videoContainer.classList.remove('hidden');
-                document.getElementById('startCamera').classList.add('hidden');
-                document.getElementById('stopCamera').classList.remove('hidden');
-                state.codeReader = new ZXing.BrowserMultiFormatReader();
-                const video = document.getElementById('video');
-                await state.codeReader.decodeFromConstraints({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                }, video, (result, err) => {
-                    if (result) { handleScannedCode(result.text); }
-                    if (err && !(err instanceof ZXing.NotFoundException)) { console.error('Erro de decodificação:', err); }
-                });
-                showToast('Câmera iniciada.');
-            } catch (error) {
-                console.error('Erro ao acessar a câmera:', error);
-                showToast('Erro ao acessar a câmera. Verifique as permissões.');
-                stopCamera();
+            let routeData = [];
+            let html5QrCode;
+            let currentUsername = null;
+            
+            // --- LÓGICA DE LOGIN E LOGOUT ---
+            loginButton.addEventListener('click', handleLogin);
+            logoutButton.addEventListener('click', handleLogout);
+
+            // Permitir login com a tecla Enter
+            document.getElementById('password').addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    handleLogin();
+                }
+            });
+
+
+            function handleLogin() {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const user = fakeDatabase.users[username];
+
+                if (user && user.password === password) {
+                    currentUsername = username;
+                    loginScreen.classList.add('hidden');
+                    appScreen.classList.remove('hidden');
+                    loginError.classList.add('hidden');
+                    welcomeMessage.textContent = `Bem-vindo, ${user.name}!`;
+                    loadUserRoute(username);
+                } else {
+                    loginError.classList.remove('hidden');
+                }
             }
-        }
-        function stopCamera() {
-            if (state.codeReader) { state.codeReader.reset(); state.codeReader = null; }
-            const videoContainer = document.getElementById('videoContainer');
-            videoContainer.classList.remove('video-flutuante');
-            videoContainer.classList.add('hidden');
-            document.getElementById('startCamera').classList.remove('hidden');
-            document.getElementById('stopCamera').classList.add('hidden');
-            showToast('Câmera parada.');
-        }
-        function addProductManually() {
-            const codeInput = document.getElementById('barcodeInput');
-            const code = codeInput.value.trim();
-            if (code) { handleScannedCode(code); codeInput.value = ''; }
-        }
-        function handleScannedCode(code) {
-            const product = state.products.find(p => p.code === code);
-            if (product) {
-                if (product.scannedQty >= product.expectedQty) {
-                    showToast(`❌ ${product.name} já foi completamente escaneado (${product.scannedQty}/${product.expectedQty})`);
-                    playErrorSound();
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+
+            function handleLogout() {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
+                }
+                currentUsername = null;
+                routeData = [];
+                appScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                scanResultEl.innerHTML = '';
+                scanResultEl.className = '';
+                startScanButton.disabled = false;
+                startScanButton.textContent = "📷 Iniciar Leitura";
+            }
+
+            function loadUserRoute(username) {
+                const originalRoute = fakeDatabase.routes[username] || [];
+                routeData = JSON.parse(JSON.stringify(originalRoute));
+                
+                html5QrCode = new Html5Qrcode("qr-reader");
+                
+                renderFullList();
+                updateProgress();
+            }
+            
+            // --- LÓGICA DO APP PRINCIPAL ---
+            
+            manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
+            closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
+            submitManualCode.addEventListener('click', processManualCode);
+            toggleListButton.addEventListener('click', toggleRouteList);
+            window.addEventListener('click', (event) => {
+                if (event.target == manualEntryModal) {
+                    manualEntryModal.style.display = 'none';
+                }
+            });
+            startScanButton.addEventListener('click', startScanner);
+
+
+            function renderFullList() {
+                fullRouteListDiv.innerHTML = '';
+                if (routeData.length === 0) {
+                    fullRouteListDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>";
                     return;
                 }
-                product.scannedQty = (product.scannedQty || 0) + 1;
-                state.scannedProducts.push(code);
-                saveState();
-                updateProductList();
-                playBeep();
-                if (product.scannedQty === product.expectedQty) {
-                    showToast(`✅ ${product.name} completado (${product.scannedQty}/${product.expectedQty})`);
-                }
-            } else {
-                playErrorSound();
-                showToast('⚠️ Produto não encontrado na lista');
-                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            }
-        }
-        function updateProductList() {
-            const productList = document.getElementById('productList');
-            const noProducts = document.getElementById('noProducts');
-            const totalQty = state.products.reduce((sum, p) => sum + p.expectedQty, 0);
-            const scannedQty = state.products.reduce((sum, p) => sum + (p.scannedQty || 0), 0);
-            const okCount = state.products.filter(p => p.scannedQty === p.expectedQty).length;
-            const problemCount = state.products.filter(p => p.scannedQty > 0 && p.scannedQty !== p.expectedQty).length;
-            const progressPercent = totalQty ? Math.round((scannedQty / totalQty) * 100) : 0;
-            if (state.products.length > 0) {
-                noProducts.classList.add('hidden');
-                productList.classList.remove('hidden');
-                productList.innerHTML = state.products.map(product => {
-                    const isComplete = product.scannedQty === product.expectedQty;
-                    let statusClass = '';
-                    let statusIcon = '';
-                    if(product.scannedQty === product.expectedQty) {
-                        statusClass = 'status-ok'; statusIcon = '✓ (Completo)';
-                    } else if (product.scannedQty > product.expectedQty) {
-                        statusClass = 'status-warning'; statusIcon = '⚠️ (Excesso)';
-                    } else if (product.scannedQty > 0) {
-                        statusClass = 'status-error'; statusIcon = '(Faltando)';
+
+                routeData.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'route-item';
+                    itemDiv.id = item.id;
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'item-info';
+                    itemInfo.innerHTML = `<p><strong>Parada ${item.ordem_parada}:</strong> ${item.endereco}</p><p><small>Código: ${item.produto_codigo} | Ref: ${item.referencias}</small></p>`;
+                    const statusIndicator = document.createElement('div');
+                    statusIndicator.className = 'status-indicator';
+                    if (item.scanned) {
+                        statusIndicator.classList.add('scanned');
                     }
-                    return `<li class="${isComplete ? 'product-complete' : ''}"> <div class="product-info"> <div class="product-name">${product.name}</div> <div class="product-code">${product.code}</div> </div> <span class="product-status ${statusClass}"> ${product.scannedQty || 0}/${product.expectedQty} ${statusIcon} </span> </li>`;
-                }).join('');
-            } else {
-                noProducts.classList.remove('hidden');
-                productList.classList.add('hidden');
+                    itemDiv.appendChild(itemInfo);
+                    itemDiv.appendChild(statusIndicator);
+                    fullRouteListDiv.appendChild(itemDiv);
+                });
             }
-            document.getElementById('scannedCount').textContent = scannedQty;
-            document.getElementById('expectedCount').textContent = totalQty;
-            document.getElementById('okCount').textContent = okCount;
-            document.getElementById('problemCount').textContent = problemCount;
-            document.getElementById('foundCount').textContent = scannedQty;
-            document.getElementById('totalCount').textContent = totalQty;
-            document.getElementById('progressBar').style.width = `${progressPercent}%`;
-            document.getElementById('progressPercent').textContent = `${progressPercent}%`;
-        }
-        function saveState() {
-            localStorage.setItem('products', JSON.stringify(state.products));
-            localStorage.setItem('scannedProducts', JSON.stringify(state.scannedProducts));
-        }
-        async function exportAsImage() {
-            if (state.products.length === 0) { showToast('Nenhum produto carregado para exportar'); return; }
-            try {
-                showToast('Gerando imagem...');
-                const exportElement = document.createElement('div');
-                exportElement.style.cssText = 'background: white; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto;';
-                const title = document.createElement('h1');
-                title.textContent = 'Relatório de Inventário';
-                title.style.cssText = 'text-align: center; margin-bottom: 16px; font-size: 1.5rem;';
-                exportElement.appendChild(title);
-                const date = document.createElement('p');
-                date.textContent = new Date().toLocaleString();
-                date.style.cssText = 'text-align: center; margin-bottom: 24px; color: #666;';
-                exportElement.appendChild(date);
-                const progressSection = document.querySelector('section:nth-of-type(3)').cloneNode(true);
-                exportElement.appendChild(progressSection);
-                const productList = document.getElementById('productList').cloneNode(true);
-                productList.style.maxHeight = 'none';
-                productList.style.overflow = 'visible';
-                exportElement.appendChild(productList);
-                document.body.appendChild(exportElement);
-                const canvas = await html2canvas(exportElement, { scale: 2, logging: false, useCORS: true, allowTaint: true });
-                document.body.removeChild(exportElement);
-                const link = document.createElement('a');
-                link.download = `inventario_${new Date().toISOString().slice(0, 10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast('Imagem exportada com sucesso');
-            } catch (error) {
-                console.error('Erro ao exportar imagem:', error);
-                showToast('Erro ao gerar imagem');
+
+            function updateProgress() {
+                if (routeData.length === 0) {
+                    progressBar.style.width = '0%';
+                    progressText.textContent = 'Nenhuma Rota';
+                    startScanButton.disabled = true;
+                    manualEntryButton.disabled = true;
+                    return;
+                }
+                
+                startScanButton.disabled = false;
+                manualEntryButton.disabled = false;
+                
+                const scannedCount = routeData.filter(item => item.scanned).length;
+                const percentage = Math.round((scannedCount / routeData.length) * 100);
+                progressBar.style.width = `${percentage}%`;
+                progressText.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`;
+                if (percentage === 100) {
+                    displayFeedback("🎉 Carga Completa!", "success", false);
+                    if (html5QrCode && html5QrCode.isScanning) {
+                        html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
+                    }
+                    startScanButton.disabled = true;
+                    startScanButton.textContent = "Carga Verificada";
+                }
             }
-        }
-        function clearAll() {
-            if (confirm('Tem certeza que deseja limpar todos os dados?')) {
-                stopCamera();
-                state.products = [];
-                state.scannedProducts = [];
-                localStorage.removeItem('products');
-                localStorage.removeItem('scannedProducts');
-                document.getElementById('fileInput').value = '';
-                document.getElementById('barcodeInput').value = '';
-                updateProductList();
-                showToast('Todos os dados foram limpos');
+
+            function processManualCode() {
+                const code = manualCodeInput.value.trim();
+                if (code) {
+                    validateCode(code);
+                    manualCodeInput.value = '';
+                    manualEntryModal.style.display = 'none';
+                }
             }
-        }
-        function playBeep() {
-            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(800, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.3);
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.3);
-        }
-        function playErrorSound() {
-            if (!state.audioContext) { state.audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
-            const oscillator = state.audioContext.createOscillator();
-            const gain = state.audioContext.createGain();
-            oscillator.type = 'square';
-            oscillator.frequency.setValueAtTime(300, state.audioContext.currentTime);
-            gain.gain.setValueAtTime(1, state.audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.5);
-            oscillator.connect(gain);
-            gain.connect(state.audioContext.destination);
-            oscillator.start();
-            oscillator.stop(state.audioContext.currentTime + 0.5);
-        }
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+            
+            manualCodeInput.addEventListener('keyup', (event) => {
+                if(event.key === 'Enter') {
+                    processManualCode();
+                }
+            });
+
+            function validateCode(code) {
+                const foundItem = routeData.find(item => item.produto_codigo === code);
+                if (foundItem) {
+                    if (!foundItem.scanned) {
+                        foundItem.scanned = true;
+                        successSound.play();
+                        displayFeedback(`Código ${code} OK!`, "success");
+                        // Chamar renderFullList() força a atualização da lista visualmente
+                        const itemElement = document.getElementById(foundItem.id);
+                        if(itemElement) {
+                             itemElement.querySelector('.status-indicator').classList.add('scanned');
+                        }
+                        updateProgress();
+                    } else {
+                        displayFeedback(`Código ${code} já foi verificado.`, "info");
+                    }
+                } else {
+                    errorSound.play();
+                    displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
+                }
+            }
+
+            function startScanner() {
+                if (html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        startScanButton.textContent = "📷 Iniciar Leitura";
+                        qrReaderPlaceholder.style.display = 'flex';
+                    }).catch(err => console.error(err));
+                    return;
+                }
+
+                qrReaderPlaceholder.style.display = 'none';
+                startScanButton.disabled = true;
+                startScanButton.textContent = "Carregando...";
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                html5QrCode.start({ facingMode: "environment" }, config, 
+                    (decodedText, decodedResult) => {
+                        // Sucesso na leitura
+                        validateCode(decodedText);
+                        // Pausa o scanner para evitar múltiplas leituras do mesmo código
+                        if (html5QrCode.isScanning) {
+                            html5QrCode.stop();
+                            startScanButton.textContent = "📷 Iniciar Leitura";
+                            qrReaderPlaceholder.style.display = 'flex';
+                        }
+                    }, 
+                    (errorMessage) => {
+                        // Erro de leitura (ignora os mais comuns)
+                         if (!errorMessage.includes("NotFoundException")) {
+                            console.warn(`QR Code scan error: ${errorMessage}`);
+                         }
+                    }
+                ).then(() => {
+                    startScanButton.disabled = false;
+                    startScanButton.textContent = "Parar Leitura";
+                }).catch(err => {
+                    alert(`Erro ao iniciar a câmera: ${err}. Por favor, verifique as permissões da câmera no seu navegador.`);
+                    startScanButton.disabled = false;
+                    startScanButton.textContent = "📷 Iniciar Leitura";
+                    qrReaderPlaceholder.style.display = 'flex';
+                });
+            }
+
+            function displayFeedback(message, type, autoClear = true) {
+                scanResultEl.innerHTML = message;
+                scanResultEl.className = `result-${type}`;
+                
+                // Limpar a classe após a animação de desaparecimento, se houver
+                if (autoClear) {
+                    setTimeout(() => {
+                        scanResultEl.innerHTML = '';
+                        scanResultEl.className = '';
+                    }, 4000);
+                }
+            }
+            
+            function toggleRouteList() {
+                const isHidden = fullRouteListDiv.classList.toggle('hidden');
+                toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder';
+            }
+        });
+
     </script>
 </body>
 </html>
