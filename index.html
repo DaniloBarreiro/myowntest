@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificador de Carga</title>
-    <!-- pdf.js - Biblioteca para ler PDFs no navegador -->
+    
+    <!-- ================== CORREÇÃO APLICADA AQUI ================== -->
+    <!-- Bibliotecas externas movidas para o <head> para garantir que sejam carregadas antes do seu script. -->
     <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- ================== FIM DA CORREÇÃO ================== -->
+
     <style>
         :root {
             --primary-color: #005A9C; --secondary-color: #f4f4f4; --success-color: #28a745;
@@ -81,8 +86,6 @@
 
     <div id="manualEntryModal" class="modal"><div class="modal-content"><span class="close-button">×</span><h3>Digitar Código do Pacote</h3><input type="text" id="manualCodeInput" placeholder="Insira o código aqui..."><button id="submitManualCode">Verificar Código</button></div></div>
 
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
@@ -119,13 +122,8 @@
             let isScanCooldown = false;
             let audioContext = null;
 
-            // ================== CORREÇÃO APLICADA AQUI ==================
-            // Event Listeners são configurados DEPOIS que todas as variáveis são declaradas.
-            
-            // Configura todos os botões de logout
+            // --- Event Listeners ---
             document.querySelectorAll('.logout-button').forEach(btn => btn.addEventListener('click', handleLogout));
-            
-            // Configura botão de login
             loginButton.addEventListener('click', handleLogin);
             document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
             
@@ -268,7 +266,6 @@
 
             function distributeRoutes(parsedRoutes) {
                 Object.keys(fakeDatabase.routes).forEach(driver => fakeDatabase.routes[driver] = []);
-                const drivers = Object.keys(fakeDatabase.users).filter(u => !fakeDatabase.users[u].isAdmin);
                 let resultsHtml = '<h3>Distribuição Concluída</h3><ul>';
 
                 if(parsedRoutes['PM299_1']) {
