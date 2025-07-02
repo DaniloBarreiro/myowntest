@@ -20,9 +20,10 @@
         #login-screen { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
         .login-container { text-align: center; width: 90%; max-width: 400px; }
         .login-container input { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .login-container button { width: 100%; margin-top: 20px; padding: 12px; border: none; border-radius: 5px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; background-color: var(--success-color); transition: opacity 0.2s; }
+        .login-container button { width: 100%; margin-top: 20px; padding: 12px; border: none; border-radius: 5px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; background-color: var(--success-color); }
         #login-error { color: var(--danger-color); margin-top: 15px; }
         .logout-button { background-color: var(--danger-color); font-size: 0.9em; padding: 8px 12px; border: none; color: white; border-radius: 5px; cursor: pointer; }
+        #reset-data-button { background-color: #6c757d; margin-top: 15px; }
         #scanner-controls { text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
         #scanner-controls button { padding: 12px 15px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; flex-grow: 1; }
         #scanner-controls button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
@@ -66,6 +67,9 @@
             <div class="file-input-wrapper"><label for="pdf-upload" class="file-input-label">Escolher Arquivo PDF</label><input type="file" id="pdf-upload" accept="application/pdf"><span id="pdf-filename">Nenhum arquivo selecionado</span></div>
             <button id="process-pdf-button" disabled>Processar e Distribuir</button>
             <div id="admin-results" style="margin-top: 20px;"></div>
+            <hr style="margin: 25px 0 15px;">
+            <p><small>Para começar um novo teste do zero, limpe os dados salvos.</small></p>
+            <button id="reset-data-button" class="logout-button">Resetar Sistema</button>
         </div>
     </main>
     <div id="manualEntryModal" class="modal"><div class="modal-content"><span class="close-button">×</span><h3>Digitar Código do Pacote</h3><input type="text" id="manualCodeInput" placeholder="Insira o código aqui..."><button id="submitManualCode">Verificar Código</button></div></div>
@@ -82,10 +86,10 @@
 
             // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
             let fakeDatabase;
-            const storedDb = sessionStorage.getItem('fakeDatabase');
+            const storedDb = localStorage.getItem('fakeDatabase');
             if (storedDb) {
                 fakeDatabase = JSON.parse(storedDb);
-                console.log("Banco de dados carregado da sessionStorage.");
+                console.log("Banco de dados carregado da localStorage.");
             } else {
                 fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
                 console.log("Banco de dados inicializado a partir do estado padrão.");
@@ -104,6 +108,7 @@
             const processPdfButton = document.getElementById('process-pdf-button');
             const adminResults = document.getElementById('admin-results');
             const startScanButton = document.getElementById('startScanButton');
+            const resetDataButton = document.getElementById('reset-data-button');
             
             let routeData = [];
             let html5QrCode;
@@ -112,6 +117,7 @@
 
             document.querySelectorAll('.logout-button').forEach(btn => btn.addEventListener('click', handleLogout));
             loginButton.addEventListener('click', handleLogin);
+            resetDataButton.addEventListener('click', handleResetSystem);
             document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
             
             function initAudioContext() {
@@ -165,18 +171,21 @@
                 if (html5QrCode && html5QrCode.isScanning) {
                     html5QrCode.stop().catch(err => console.error(err));
                 }
-                // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
-                // Limpa o sessionStorage ao fazer logout para garantir um reset completo.
-                sessionStorage.removeItem('fakeDatabase');
-                console.log("Sessão finalizada. Dados removidos da sessionStorage.");
-                // ------------------------------------
-
-                fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
+                // Esta função agora apenas esconde as telas. Os dados persistem.
                 adminScreen.classList.add('hidden');
                 appScreen.classList.add('hidden');
                 loginScreen.classList.remove('hidden');
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
+            }
+
+            function handleResetSystem() {
+                if (confirm("Você tem certeza que deseja apagar todas as rotas distribuídas?")) {
+                    localStorage.removeItem('fakeDatabase');
+                    console.log("localStorage foi limpo.");
+                    alert("Sistema resetado com sucesso!");
+                    location.reload(); // Recarrega a página para um estado inicial limpo.
+                }
             }
 
             pdfUpload.addEventListener('change', () => {
@@ -260,13 +269,11 @@
                     resultsHtml += `<li><b>PM2_3</b> (${parsedRoutes['PM2_3'].length} pacotes) foi atribuída a <b>maria.souza</b>.</li>`;
                 }
                 
-                // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
-                // Salva o banco de dados atualizado na sessionStorage.
-                sessionStorage.setItem('fakeDatabase', JSON.stringify(fakeDatabase));
-                console.log("Banco de dados atualizado e salvo na sessionStorage.");
-                // ------------------------------------
+                // Salva o banco de dados atualizado na localStorage.
+                localStorage.setItem('fakeDatabase', JSON.stringify(fakeDatabase));
+                console.log("Banco de dados atualizado e salvo na localStorage.");
 
-                resultsHtml += '</ul><p><b>Os dados da rota foram salvos temporariamente.</b></p>';
+                resultsHtml += '</ul><p><b>Os dados da rota foram salvos.</b></p>';
                 adminResults.innerHTML = resultsHtml;
             }
 
