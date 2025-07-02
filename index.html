@@ -4,91 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificador de Carga</title>
+    <!-- pdf.js - Biblioteca para ler PDFs no navegador -->
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
     <style>
         :root {
-            --primary-color: #005A9C;
-            --secondary-color: #f4f4f4;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --text-color: #333;
-            --light-green: #d4edda;
-            --light-red: #f8d7da;
+            --primary-color: #005A9C; --secondary-color: #f4f4f4; --success-color: #28a745;
+            --danger-color: #dc3545; --text-color: #333; --light-green: #d4edda; --light-red: #f8d7da;
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--secondary-color); color: var(--text-color); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         .hidden { display: none !important; }
-        
-        #login-screen { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; background-color: var(--secondary-color); }
-        .login-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        .login-container h1 { margin-top: 0; color: var(--primary-color); }
-        .login-container p { color: #666; }
+        main { width: 100%; max-width: 600px; padding: 20px; box-sizing: border-box; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h1, .card h2 { margin-top: 0; color: var(--primary-color); }
+        .app-header { display: flex; justify-content: space-between; align-items: center; }
+        #login-screen { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
+        .login-container { text-align: center; width: 90%; max-width: 400px; }
         .login-container input { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         .login-container button { width: 100%; margin-top: 20px; padding: 12px; border: none; border-radius: 5px; color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; background-color: var(--success-color); transition: opacity 0.2s; }
-        .login-container button:hover { opacity: 0.9; }
         #login-error { color: var(--danger-color); margin-top: 15px; }
-        
-        main#app { width: 100%; max-width: 600px; padding: 20px; box-sizing: border-box; }
-        
-        .app-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .app-header h2 { margin: 0; font-size: 1.2em; color: var(--primary-color); }
-        #logoutButton { background-color: var(--danger-color); font-size: 0.9em; padding: 8px 12px; border: none; color: white; border-radius: 5px; cursor: pointer; transition: opacity 0.2s; }
-        #logoutButton:hover { opacity: 0.9; }
-        
-        #scanner-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .logout-button { background-color: var(--danger-color); font-size: 0.9em; padding: 8px 12px; border: none; color: white; border-radius: 5px; cursor: pointer; }
+        #scanner-controls { text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+        #scanner-controls button { padding: 12px 15px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; flex-grow: 1; }
+        #scanner-controls button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
         #qr-reader { width: 100%; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
         #qr-reader-placeholder { width: 100%; aspect-ratio: 1/1; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; color: #6c757d; font-size: 1.2em; border-radius: 8px; text-align: center; border: 2px dashed #ced4da; }
-        #scanner-controls { text-align: center; margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
-        #scanner-controls button { padding: 12px 15px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold; flex-grow: 1; transition: opacity 0.2s; }
-        #scanner-controls button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
-        
-        #scan-result { margin-top: 15px; font-weight: bold; padding: 12px; border-radius: 5px; width: 100%; box-sizing: border-box; text-align: center; transition: opacity 0.3s; }
+        #scan-result { margin-top: 15px; font-weight: bold; padding: 12px; border-radius: 5px; width: 100%; box-sizing: border-box; text-align: center; }
         .result-success { color: #155724; background-color: var(--light-green); border: 1px solid #c3e6cb; }
         .result-error { color: #721c24; background-color: var(--light-red); border: 1px solid #f5c6cb; }
         .result-info { color: #0c5460; background-color: #d1ecf1; border: 1px solid #bee5eb; }
-        
-        #route-list-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .list-header h2 { margin: 0; color: var(--primary-color); }
-        .list-header button { background-color: #6c757d; color: white; padding: 8px 12px; font-size: 0.9em; border: none; border-radius: 5px; cursor: pointer; flex-shrink: 0; }
-        
         .progress-bar-container { width: 100%; background-color: #e0e0e0; border-radius: 5px; margin-bottom: 15px; position: relative; height: 30px; display: flex; align-items: center; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background-color: var(--success-color); border-radius: 5px; transition: width 0.4s ease; }
         #progressText { position: absolute; width: 100%; text-align: center; font-weight: bold; color: #000; text-shadow: 0 0 2px white; }
-        
         #full-route-list { margin-top: 10px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 5px; }
         .route-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
-        .route-item:last-child { border-bottom: none; }
-        .item-info { flex-grow: 1; }
-        .item-info p { margin: 0; line-height: 1.4; }
-        .status-indicator { width: 25px; height: 25px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin-left: 15px; transition: background-color 0.3s ease; }
+        .status-indicator { width: 25px; height: 25px; border-radius: 50%; background-color: #ccc; flex-shrink: 0; margin-left: 15px; }
         .status-indicator.scanned { background-color: var(--success-color); background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/></svg>'); background-position: center; background-repeat: no-repeat; }
-        
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); padding-top: 60px; }
         .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 8px; text-align: center; }
         .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        #manualCodeInput { width: calc(100% - 24px); padding: 12px; margin-top: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; font-size: 1.1em; }
-        #submitManualCode { width: 100%; padding: 12px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; background-color: var(--primary-color); }
+        .file-input-wrapper { margin: 20px 0; }
+        .file-input-wrapper input[type="file"] { display: none; }
+        .file-input-label { background-color: var(--primary-color); color: white; padding: 10px 15px; border-radius: 5px; cursor: pointer; display: inline-block; }
+        #pdf-filename { margin-left: 10px; color: #555; }
+        #admin-results ul { list-style-type: none; padding: 0; text-align: left;}
+        #admin-results li { background: #e9e9e9; margin: 5px 0; padding: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
     <div id="login-screen">
-        <div class="login-container"><h1>Verificador de Carga</h1><p>Entre com seu usuário e senha.</p><input type="text" id="username" placeholder="Usuário" autocomplete="username"><input type="password" id="password" placeholder="Senha" autocomplete="current-password"><button id="loginButton">Entrar</button><p id="login-error" class="hidden">Usuário ou senha inválidos.</p></div>
+        <div class="card login-container">
+            <h1>Verificador de Carga</h1><p>Entre com seu usuário e senha.</p>
+            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
+            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
+            <button id="loginButton">Entrar</button>
+            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
+        </div>
     </div>
+
+    <!-- TELA DO MOTORISTA -->
     <main id="app" class="hidden">
-        <header class="app-header"><h2 id="welcomeMessage"></h2><button id="logoutButton">Sair</button></header>
-        <section id="scanner-section"><div id="qr-reader"><div id="qr-reader-placeholder">A câmera aparecerá aqui</div></div><div id="scanner-controls"><button id="startScanButton">📷 Iniciar Leitura</button><button id="manualEntryButton">⌨️ Digitar Código</button></div><p id="scan-result"></p></section>
-        <section id="route-list-section"><div class="list-header"><h2>Pacotes da Rota</h2><button id="toggle-list-button">Esconder</button></div><div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div><span id="progressText">0%</span></div><div id="full-route-list"></div></section>
+        <div class="card app-header"><h2 id="welcomeMessage"></h2><button class="logout-button">Sair</button></div>
+        <div class="card" id="scanner-section"><div id="qr-reader"><div id="qr-reader-placeholder">A câmera aparecerá aqui</div></div><div id="scanner-controls"><button id="startScanButton">📷 Iniciar Leitura</button><button id="manualEntryButton">⌨️ Digitar Código</button></div><p id="scan-result"></p></div>
+        <div class="card" id="route-list-section"><div class="app-header"><h2>Pacotes da Rota</h2><button id="toggle-list-button">Esconder</button></div><div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div><span id="progressText">0%</span></div><div id="full-route-list"></div></div>
     </main>
+    
+    <!-- TELA DO ADMINISTRADOR -->
+    <main id="admin-app" class="hidden">
+        <div class="card app-header"><h2 id="adminWelcomeMessage">Painel do Administrador</h2><button class="logout-button">Sair</button></div>
+        <div class="card">
+            <h3>Distribuição de Rotas</h3><p>Carregue o arquivo PDF de rotas para distribuir aos motoristas.</p>
+            <div class="file-input-wrapper"><label for="pdf-upload" class="file-input-label">Escolher Arquivo PDF</label><input type="file" id="pdf-upload" accept="application/pdf"><span id="pdf-filename">Nenhum arquivo selecionado</span></div>
+            <button id="process-pdf-button" disabled>Processar e Distribuir</button>
+            <div id="admin-results" style="margin-top: 20px;"></div>
+        </div>
+    </main>
+
     <div id="manualEntryModal" class="modal"><div class="modal-content"><span class="close-button">×</span><h3>Digitar Código do Pacote</h3><input type="text" id="manualCodeInput" placeholder="Insira o código aqui..."><button id="submitManualCode">Verificar Código</button></div></div>
 
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -96,135 +86,214 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            const fakeDatabase = {
-                users: {"joao.silva":{password:"123",name:"João Silva"},"maria.souza":{password:"456",name:"Maria Souza"},"motorista3":{password:"789",name:"Carlos Pereira"}},
-                routes: {"joao.silva":[{id:"item-45089597300",ordem_parada:"1",produto_codigo:"45089597300",endereco:"Rua das Flores, 123 - Centro, Caraguatatuba",referencias:"Portão azul",scanned:false},{id:"item-45088281415",ordem_parada:"2",produto_codigo:"45088281415",endereco:"Av. Principal, 456 - Poiares, Caraguatatuba",referencias:"Entregar na portaria",scanned:false},{id:"item-45088285089",ordem_parada:"2",produto_codigo:"45088285089",endereco:"Av. Principal, 456 - Poiares, Caraguatatuba",referencias:"Caixa frágil",scanned:false}],"maria.souza":[{id:"item-45088626967",ordem_parada:"1",produto_codigo:"45088626967",endereco:"Alameda dos Anjos, 789 - Indaiá, Caraguatatuba",referencias:"Deixar com o vizinho",scanned:false},{id:"item-45083357047",ordem_parada:"2",produto_codigo:"45083357047",endereco:"Rua Teste, 999 - Massaguaçu, Caraguatatuba",referencias:"Cuidado com o cão",scanned:false}],"motorista3":[]}
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://mozilla.github.io/pdf.js/build/pdf.worker.js`;
+            
+            const initialDatabaseState = {
+                users: {
+                    "admin": { password: "admin", name: "Administrador", isAdmin: true },
+                    "joao.silva": { password: "123", name: "João Silva", isAdmin: false },
+                    "maria.souza": { password: "456", name: "Maria Souza", isAdmin: false },
+                    "motorista3": { password: "789", name: "Carlos Pereira", isAdmin: false }
+                },
+                routes: { "joao.silva": [], "maria.souza": [], "motorista3": [] }
             };
+            let fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
 
+            // --- Bloco de Declaração de Variáveis do DOM ---
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app');
+            const adminScreen = document.getElementById('admin-app');
             const loginButton = document.getElementById('loginButton');
-            const logoutButton = document.getElementById('logoutButton');
             const loginError = document.getElementById('login-error');
             const welcomeMessage = document.getElementById('welcomeMessage');
+            const adminWelcomeMessage = document.getElementById('adminWelcomeMessage');
+            const pdfUpload = document.getElementById('pdf-upload');
+            const pdfFilename = document.getElementById('pdf-filename');
+            const processPdfButton = document.getElementById('process-pdf-button');
+            const adminResults = document.getElementById('admin-results');
             const startScanButton = document.getElementById('startScanButton');
-            const fullRouteListDiv = document.getElementById('full-route-list');
-            const scanResultEl = document.getElementById('scan-result');
-            const manualEntryButton = document.getElementById('manualEntryButton');
-            const toggleListButton = document.getElementById('toggle-list-button');
-            const progressBar = document.getElementById('progressBar');
-            const progressText = document.getElementById('progressText');
-            const qrReaderPlaceholder = document.getElementById('qr-reader-placeholder');
-            const manualEntryModal = document.getElementById('manualEntryModal');
-            const closeModalButton = document.querySelector('.close-button');
-            const manualCodeInput = document.getElementById('manualCodeInput');
-            const submitManualCode = document.getElementById('submitManualCode');
             
+            // --- Variáveis de Estado ---
             let routeData = [];
             let html5QrCode;
-            let currentUsername = null;
             let isScanCooldown = false;
             let audioContext = null;
 
-            // --- LÓGICA DE SOM COM WEB AUDIO API ---
+            // ================== CORREÇÃO APLICADA AQUI ==================
+            // Event Listeners são configurados DEPOIS que todas as variáveis são declaradas.
+            
+            // Configura todos os botões de logout
+            document.querySelectorAll('.logout-button').forEach(btn => btn.addEventListener('click', handleLogout));
+            
+            // Configura botão de login
+            loginButton.addEventListener('click', handleLogin);
+            document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
+            
+            // --- LÓGICA DE SOM (Web Audio API) ---
             function initAudioContext() {
-                if (!audioContext) {
-                    try {
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        console.log("AudioContext inicializado com sucesso.");
-                    } catch (e) {
-                        console.error("Web Audio API não é suportada neste navegador.", e);
-                    }
+                if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
             }
-            
-            function playSuccessSound() {
+            function playSound(type) {
                 if (!audioContext) return;
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
-                
-                oscillator.type = 'sine'; // Tom mais suave para sucesso
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Tom agudo
-                
-                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-            }
-
-            function playErrorSound() {
-                if (!audioContext) return;
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.type = 'square'; // Tom mais "duro" para erro
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // Tom grave
-                
-                gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                if (type === 'success') {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                } else { // error
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                }
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-                
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
-                
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.5);
             }
 
             // --- LÓGICA PRINCIPAL DA APLICAÇÃO ---
-            loginButton.addEventListener('click', handleLogin);
-            logoutButton.addEventListener('click', handleLogout);
-            document.getElementById('password').addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') handleLogin();
-            });
-
             function handleLogin() {
-                // A primeira interação do usuário garante que o AudioContext seja criado.
                 initAudioContext();
-                
                 const username = document.getElementById('username').value.trim();
                 const password = document.getElementById('password').value.trim();
                 const user = fakeDatabase.users[username];
 
                 if (user && user.password === password) {
-                    currentUsername = username;
                     loginScreen.classList.add('hidden');
-                    appScreen.classList.remove('hidden');
                     loginError.classList.add('hidden');
-                    welcomeMessage.textContent = `Bem-vindo, ${user.name}!`;
-                    loadUserRoute(username);
+                    if (user.isAdmin) {
+                        adminWelcomeMessage.textContent = `Bem-vindo, ${user.name}`;
+                        adminScreen.classList.remove('hidden');
+                    } else {
+                        welcomeMessage.textContent = `Bem-vindo, ${user.name}!`;
+                        appScreen.classList.remove('hidden');
+                        loadUserRoute(username);
+                    }
                 } else {
-                    playErrorSound(); // Feedback sonoro no erro de login
+                    playSound('error');
                     loginError.classList.remove('hidden');
                 }
             }
-
+            
             function handleLogout() {
                 if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err));
+                    html5QrCode.stop().catch(err => console.error(err));
                 }
-                currentUsername = null; routeData = [];
+                fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
+                adminScreen.classList.add('hidden');
                 appScreen.classList.add('hidden');
                 loginScreen.classList.remove('hidden');
                 document.getElementById('username').value = '';
                 document.getElementById('password').value = '';
-                scanResultEl.innerHTML = '';
-                scanResultEl.className = '';
-                startScanButton.disabled = false;
-                startScanButton.textContent = "📷 Iniciar Leitura";
             }
 
+            // --- LÓGICA DO ADMINISTRADOR ---
+            pdfUpload.addEventListener('change', () => {
+                if (pdfUpload.files.length > 0) {
+                    pdfFilename.textContent = pdfUpload.files[0].name;
+                    processPdfButton.disabled = false;
+                } else {
+                    pdfFilename.textContent = 'Nenhum arquivo selecionado';
+                    processPdfButton.disabled = true;
+                }
+            });
+
+            processPdfButton.addEventListener('click', async () => {
+                const file = pdfUpload.files[0];
+                if (!file) return;
+
+                adminResults.innerHTML = '<p>Processando PDF... Por favor, aguarde.</p>';
+                processPdfButton.disabled = true;
+
+                try {
+                    const allText = await extractTextFromPdf(file);
+                    const parsedRoutes = parseRoutesFromText(allText);
+                    distributeRoutes(parsedRoutes);
+                } catch (error) {
+                    adminResults.innerHTML = `<p class="result-error">Erro ao processar o PDF: ${error.message}</p>`;
+                    console.error(error);
+                } finally {
+                    processPdfButton.disabled = false;
+                }
+            });
+            
+            function extractTextFromPdf(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        try {
+                            const pdf = await pdfjsLib.getDocument(event.target.result).promise;
+                            let allText = '';
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                allText += textContent.items.map(item => item.str).join(' ');
+                            }
+                            resolve(allText);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            function parseRoutesFromText(text) {
+                const routes = {};
+                const lineRegex = /SSP16\s+(PM\d+_?\d+)\s+#N\/A\s+#N\/A\s+([\dA-Z]+)\s+(\d{11,})\s+Parati/g;
+                let match;
+                
+                while ((match = lineRegex.exec(text)) !== null) {
+                    const routeName = match[1];
+                    const order = match[2];
+                    const shipmentCode = match[3];
+
+                    if (!routes[routeName]) routes[routeName] = [];
+                    
+                    routes[routeName].push({
+                        id: `item-${shipmentCode}`,
+                        ordem_parada: order,
+                        produto_codigo: shipmentCode,
+                        endereco: 'Endereço não disponível no PDF',
+                        referencias: 'N/A',
+                        scanned: false
+                    });
+                }
+                return routes;
+            }
+
+            function distributeRoutes(parsedRoutes) {
+                Object.keys(fakeDatabase.routes).forEach(driver => fakeDatabase.routes[driver] = []);
+                const drivers = Object.keys(fakeDatabase.users).filter(u => !fakeDatabase.users[u].isAdmin);
+                let resultsHtml = '<h3>Distribuição Concluída</h3><ul>';
+
+                if(parsedRoutes['PM299_1']) {
+                    fakeDatabase.routes['joao.silva'] = parsedRoutes['PM299_1'];
+                    resultsHtml += `<li><b>PM299_1</b> (${parsedRoutes['PM299_1'].length} pacotes) foi atribuída a <b>joao.silva</b>.</li>`;
+                }
+                if(parsedRoutes['PM2_3']) {
+                    fakeDatabase.routes['maria.souza'] = parsedRoutes['PM2_3'];
+                    resultsHtml += `<li><b>PM2_3</b> (${parsedRoutes['PM2_3'].length} pacotes) foi atribuída a <b>maria.souza</b>.</li>`;
+                }
+                
+                resultsHtml += '</ul><p>Motoristas agora podem fazer login para ver suas rotas.</p>';
+                adminResults.innerHTML = resultsHtml;
+            }
+
+            // --- LÓGICA DO MOTORISTA ---
+            startScanButton.addEventListener('click', startScanner);
+
             function loadUserRoute(username) {
-                const originalRoute = fakeDatabase.routes[username] || [];
-                routeData = JSON.parse(JSON.stringify(originalRoute));
+                routeData = fakeDatabase.routes[username] || [];
                 html5QrCode = new Html5Qrcode("qr-reader");
                 renderFullList();
                 updateProgress();
             }
-
+            
             function validateCode(code) {
                 if (isScanCooldown) return;
                 isScanCooldown = true;
@@ -234,17 +303,17 @@
                 if (foundItem) {
                     if (!foundItem.scanned) {
                         foundItem.scanned = true;
-                        playSuccessSound();
+                        playSound('success');
                         displayFeedback(`Código ${code} OK!`, "success");
                         const itemElement = document.getElementById(foundItem.id);
                         if(itemElement) itemElement.querySelector('.status-indicator').classList.add('scanned');
                         updateProgress();
                     } else {
-                        playErrorSound();
+                        playSound('error');
                         displayFeedback(`Código ${code} já foi verificado.`, "info");
                     }
                 } else {
-                    playErrorSound();
+                    playSound('error');
                     displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
                 }
             }
@@ -253,39 +322,44 @@
                 if (html5QrCode && html5QrCode.isScanning) {
                     html5QrCode.stop().then(() => {
                         startScanButton.textContent = "📷 Iniciar Leitura";
-                        qrReaderPlaceholder.style.display = 'flex';
+                        document.getElementById('qr-reader-placeholder').style.display = 'flex';
                     }).catch(err => console.error(err));
                     return;
                 }
-                qrReaderPlaceholder.style.display = 'none';
+                document.getElementById('qr-reader-placeholder').style.display = 'none';
                 startScanButton.disabled = true;
                 startScanButton.textContent = "Carregando...";
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                const qrCodeSuccessCallback = (decodedText) => validateCode(decodedText);
-                html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+                html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => validateCode(decodedText))
                 .then(() => {
                     startScanButton.disabled = false;
                     startScanButton.textContent = "Parar Leitura";
                 }).catch(err => {
-                    alert(`Erro ao iniciar a câmera: ${err}. Por favor, verifique as permissões da câmera no seu navegador.`);
+                    alert(`Erro ao iniciar a câmera: ${err}. Verifique as permissões.`);
                     startScanButton.disabled = false;
                     startScanButton.textContent = "📷 Iniciar Leitura";
-                    qrReaderPlaceholder.style.display = 'flex';
+                    document.getElementById('qr-reader-placeholder').style.display = 'flex';
                 });
             }
-
-            // --- Funções de UI e Helpers (sem alterações) ---
+            
+            // --- Funções de UI e Helpers para motorista (sem alterações) ---
+            const manualEntryButton = document.getElementById('manualEntryButton');
+            const manualEntryModal = document.getElementById('manualEntryModal');
+            const closeModalButton = document.querySelector('.close-button');
+            const submitManualCode = document.getElementById('submitManualCode');
+            const toggleListButton = document.getElementById('toggle-list-button');
             manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
             closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
             submitManualCode.addEventListener('click', processManualCode);
             toggleListButton.addEventListener('click', toggleRouteList);
             window.addEventListener('click', (event) => { if (event.target == manualEntryModal) manualEntryModal.style.display = 'none'; });
-            function renderFullList() { fullRouteListDiv.innerHTML = ''; if (routeData.length === 0) { fullRouteListDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>"; return; } routeData.forEach(item => { const itemDiv = document.createElement('div'); itemDiv.className = 'route-item'; itemDiv.id = item.id; const itemInfo = document.createElement('div'); itemInfo.className = 'item-info'; itemInfo.innerHTML = `<p><strong>Parada ${item.ordem_parada}:</strong> ${item.endereco}</p><p><small>Código: ${item.produto_codigo} | Ref: ${item.referencias}</small></p>`; const statusIndicator = document.createElement('div'); statusIndicator.className = 'status-indicator'; if (item.scanned) statusIndicator.classList.add('scanned'); itemDiv.appendChild(itemInfo); itemDiv.appendChild(statusIndicator); fullRouteListDiv.appendChild(itemDiv); }); }
-            function updateProgress() { if (routeData.length === 0) { progressBar.style.width = '0%'; progressText.textContent = 'Nenhuma Rota'; startScanButton.disabled = true; manualEntryButton.disabled = true; return; } startScanButton.disabled = false; manualEntryButton.disabled = false; const scannedCount = routeData.filter(item => item.scanned).length; const percentage = Math.round((scannedCount / routeData.length) * 100); progressBar.style.width = `${percentage}%`; progressText.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`; if (percentage === 100) { displayFeedback("🎉 Carga Completa!", "success", false); if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.error("Falha ao parar scanner:", err)); startScanButton.textContent = "Carga Verificada"; qrReaderPlaceholder.style.display = 'flex'; } startScanButton.disabled = true; } }
-            function processManualCode() { const code = manualCodeInput.value.trim(); if (code) { validateCode(code); manualCodeInput.value = ''; manualEntryModal.style.display = 'none'; } }
-            manualCodeInput.addEventListener('keyup', (event) => { if(event.key === 'Enter') processManualCode(); });
+            function renderFullList() { const listDiv = document.getElementById('full-route-list'); listDiv.innerHTML = ''; if (!routeData || routeData.length === 0) { listDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>"; return; } routeData.forEach(item => { const itemDiv = document.createElement('div'); itemDiv.className = 'route-item'; itemDiv.id = item.id; const itemInfo = document.createElement('div'); itemInfo.className = 'item-info'; itemInfo.innerHTML = `<p><strong>Parada ${item.ordem_parada}:</strong> ${item.endereco}</p><p><small>Código: ${item.produto_codigo} | Ref: ${item.referencias}</small></p>`; const statusIndicator = document.createElement('div'); statusIndicator.className = 'status-indicator'; if (item.scanned) statusIndicator.classList.add('scanned'); itemDiv.appendChild(itemInfo); itemDiv.appendChild(statusIndicator); listDiv.appendChild(itemDiv); }); }
+            function updateProgress() { const bar = document.getElementById('progressBar'); const text = document.getElementById('progressText'); const sButton = document.getElementById('startScanButton'); const mButton = document.getElementById('manualEntryButton'); if (!routeData || routeData.length === 0) { bar.style.width = '0%'; text.textContent = 'Nenhuma Rota'; sButton.disabled = true; mButton.disabled = true; return; } sButton.disabled = false; mButton.disabled = false; const scannedCount = routeData.filter(item => item.scanned).length; const percentage = Math.round((scannedCount / routeData.length) * 100); bar.style.width = `${percentage}%`; text.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`; if (percentage === 100) { displayFeedback("🎉 Carga Completa!", "success", false); if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.error(err)); sButton.textContent = "Carga Verificada"; document.getElementById('qr-reader-placeholder').style.display = 'flex'; } sButton.disabled = true; } }
+            function processManualCode() { const input = document.getElementById('manualCodeInput'); const code = input.value.trim(); if (code) { validateCode(code); input.value = ''; manualEntryModal.style.display = 'none'; } }
+            document.getElementById('manualCodeInput').addEventListener('keyup', (e) => { if(e.key === 'Enter') processManualCode(); });
+            const scanResultEl = document.getElementById('scan-result');
             function displayFeedback(message, type, autoClear = true) { scanResultEl.innerHTML = message; scanResultEl.className = `result-${type}`; if (autoClear) { setTimeout(() => { scanResultEl.innerHTML = ''; scanResultEl.className = ''; }, 4000); } }
-            function toggleRouteList() { const isHidden = fullRouteListDiv.classList.toggle('hidden'); toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder'; }
+            function toggleRouteList() { const listDiv = document.getElementById('full-route-list'); const isHidden = listDiv.classList.toggle('hidden'); toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder'; }
         });
     </script>
 </body>
