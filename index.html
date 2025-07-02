@@ -4,13 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificador de Carga</title>
-    
-    <!-- ================== CORREÇÃO APLICADA AQUI ================== -->
-    <!-- Bibliotecas externas movidas para o <head> para garantir que sejam carregadas antes do seu script. -->
-    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- ================== FIM DA CORREÇÃO ================== -->
-
     <style>
         :root {
             --primary-color: #005A9C; --secondary-color: #f4f4f4; --success-color: #28a745;
@@ -57,23 +52,13 @@
 </head>
 <body>
     <div id="login-screen">
-        <div class="card login-container">
-            <h1>Verificador de Carga</h1><p>Entre com seu usuário e senha.</p>
-            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
-            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
-            <button id="loginButton">Entrar</button>
-            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
-        </div>
+        <div class="card login-container"><h1>Verificador de Carga</h1><p>Entre com seu usuário e senha.</p><input type="text" id="username" placeholder="Usuário" autocomplete="username"><input type="password" id="password" placeholder="Senha" autocomplete="current-password"><button id="loginButton">Entrar</button><p id="login-error" class="hidden">Usuário ou senha inválidos.</p></div>
     </div>
-
-    <!-- TELA DO MOTORISTA -->
     <main id="app" class="hidden">
         <div class="card app-header"><h2 id="welcomeMessage"></h2><button class="logout-button">Sair</button></div>
         <div class="card" id="scanner-section"><div id="qr-reader"><div id="qr-reader-placeholder">A câmera aparecerá aqui</div></div><div id="scanner-controls"><button id="startScanButton">📷 Iniciar Leitura</button><button id="manualEntryButton">⌨️ Digitar Código</button></div><p id="scan-result"></p></div>
         <div class="card" id="route-list-section"><div class="app-header"><h2>Pacotes da Rota</h2><button id="toggle-list-button">Esconder</button></div><div class="progress-bar-container"><div class="progress-bar" id="progressBar"></div><span id="progressText">0%</span></div><div id="full-route-list"></div></div>
     </main>
-    
-    <!-- TELA DO ADMINISTRADOR -->
     <main id="admin-app" class="hidden">
         <div class="card app-header"><h2 id="adminWelcomeMessage">Painel do Administrador</h2><button class="logout-button">Sair</button></div>
         <div class="card">
@@ -83,26 +68,30 @@
             <div id="admin-results" style="margin-top: 20px;"></div>
         </div>
     </main>
-
     <div id="manualEntryModal" class="modal"><div class="modal-content"><span class="close-button">×</span><h3>Digitar Código do Pacote</h3><input type="text" id="manualCodeInput" placeholder="Insira o código aqui..."><button id="submitManualCode">Verificar Código</button></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://mozilla.github.io/pdf.js/build/pdf.worker.js`;
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js`;
             
             const initialDatabaseState = {
-                users: {
-                    "admin": { password: "admin", name: "Administrador", isAdmin: true },
-                    "joao.silva": { password: "123", name: "João Silva", isAdmin: false },
-                    "maria.souza": { password: "456", name: "Maria Souza", isAdmin: false },
-                    "motorista3": { password: "789", name: "Carlos Pereira", isAdmin: false }
-                },
-                routes: { "joao.silva": [], "maria.souza": [], "motorista3": [] }
+                users: {"admin":{password:"admin",name:"Administrador",isAdmin:true},"joao.silva":{password:"123",name:"João Silva",isAdmin:false},"maria.souza":{password:"456",name:"Maria Souza",isAdmin:false},"motorista3":{password:"789",name:"Carlos Pereira",isAdmin:false}},
+                routes: {"joao.silva":[],"maria.souza":[],"motorista3":[]}
             };
-            let fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
 
-            // --- Bloco de Declaração de Variáveis do DOM ---
+            // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
+            let fakeDatabase;
+            const storedDb = sessionStorage.getItem('fakeDatabase');
+            if (storedDb) {
+                fakeDatabase = JSON.parse(storedDb);
+                console.log("Banco de dados carregado da sessionStorage.");
+            } else {
+                fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
+                console.log("Banco de dados inicializado a partir do estado padrão.");
+            }
+            // ------------------------------------
+
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app');
             const adminScreen = document.getElementById('admin-app');
@@ -116,18 +105,15 @@
             const adminResults = document.getElementById('admin-results');
             const startScanButton = document.getElementById('startScanButton');
             
-            // --- Variáveis de Estado ---
             let routeData = [];
             let html5QrCode;
             let isScanCooldown = false;
             let audioContext = null;
 
-            // --- Event Listeners ---
             document.querySelectorAll('.logout-button').forEach(btn => btn.addEventListener('click', handleLogout));
             loginButton.addEventListener('click', handleLogin);
             document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
             
-            // --- LÓGICA DE SOM (Web Audio API) ---
             function initAudioContext() {
                 if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -152,7 +138,6 @@
                 oscillator.stop(audioContext.currentTime + 0.5);
             }
 
-            // --- LÓGICA PRINCIPAL DA APLICAÇÃO ---
             function handleLogin() {
                 initAudioContext();
                 const username = document.getElementById('username').value.trim();
@@ -180,6 +165,12 @@
                 if (html5QrCode && html5QrCode.isScanning) {
                     html5QrCode.stop().catch(err => console.error(err));
                 }
+                // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
+                // Limpa o sessionStorage ao fazer logout para garantir um reset completo.
+                sessionStorage.removeItem('fakeDatabase');
+                console.log("Sessão finalizada. Dados removidos da sessionStorage.");
+                // ------------------------------------
+
                 fakeDatabase = JSON.parse(JSON.stringify(initialDatabaseState));
                 adminScreen.classList.add('hidden');
                 appScreen.classList.add('hidden');
@@ -188,7 +179,6 @@
                 document.getElementById('password').value = '';
             }
 
-            // --- LÓGICA DO ADMINISTRADOR ---
             pdfUpload.addEventListener('change', () => {
                 if (pdfUpload.files.length > 0) {
                     pdfFilename.textContent = pdfUpload.files[0].name;
@@ -202,7 +192,6 @@
             processPdfButton.addEventListener('click', async () => {
                 const file = pdfUpload.files[0];
                 if (!file) return;
-
                 adminResults.innerHTML = '<p>Processando PDF... Por favor, aguarde.</p>';
                 processPdfButton.disabled = true;
 
@@ -212,7 +201,6 @@
                     distributeRoutes(parsedRoutes);
                 } catch (error) {
                     adminResults.innerHTML = `<p class="result-error">Erro ao processar o PDF: ${error.message}</p>`;
-                    console.error(error);
                 } finally {
                     processPdfButton.disabled = false;
                 }
@@ -231,9 +219,7 @@
                                 allText += textContent.items.map(item => item.str).join(' ');
                             }
                             resolve(allText);
-                        } catch (err) {
-                            reject(err);
-                        }
+                        } catch (err) { reject(err); }
                     };
                     reader.onerror = reject;
                     reader.readAsArrayBuffer(file);
@@ -244,14 +230,11 @@
                 const routes = {};
                 const lineRegex = /SSP16\s+(PM\d+_?\d+)\s+#N\/A\s+#N\/A\s+([\dA-Z]+)\s+(\d{11,})\s+Parati/g;
                 let match;
-                
                 while ((match = lineRegex.exec(text)) !== null) {
                     const routeName = match[1];
                     const order = match[2];
                     const shipmentCode = match[3];
-
                     if (!routes[routeName]) routes[routeName] = [];
-                    
                     routes[routeName].push({
                         id: `item-${shipmentCode}`,
                         ordem_parada: order,
@@ -277,11 +260,16 @@
                     resultsHtml += `<li><b>PM2_3</b> (${parsedRoutes['PM2_3'].length} pacotes) foi atribuída a <b>maria.souza</b>.</li>`;
                 }
                 
-                resultsHtml += '</ul><p>Motoristas agora podem fazer login para ver suas rotas.</p>';
+                // --- LÓGICA DE PERSISTÊNCIA DE DADOS ---
+                // Salva o banco de dados atualizado na sessionStorage.
+                sessionStorage.setItem('fakeDatabase', JSON.stringify(fakeDatabase));
+                console.log("Banco de dados atualizado e salvo na sessionStorage.");
+                // ------------------------------------
+
+                resultsHtml += '</ul><p><b>Os dados da rota foram salvos temporariamente.</b></p>';
                 adminResults.innerHTML = resultsHtml;
             }
 
-            // --- LÓGICA DO MOTORISTA ---
             startScanButton.addEventListener('click', startScanner);
 
             function loadUserRoute(username) {
@@ -339,7 +327,6 @@
                 });
             }
             
-            // --- Funções de UI e Helpers para motorista (sem alterações) ---
             const manualEntryButton = document.getElementById('manualEntryButton');
             const manualEntryModal = document.getElementById('manualEntryModal');
             const closeModalButton = document.querySelector('.close-button');
