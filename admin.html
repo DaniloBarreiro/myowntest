@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Distribuição de Rotas</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+
+<body>
+    <div id="login-screen">
+        <div class="card login-container">
+            <h1>Painel do Administrador</h1>
+            <input type="text" id="username" placeholder="Usuário" value="admin" autocomplete="username">
+            <input type="password" id="password" placeholder="Senha" value="admin" autocomplete="current-password">
+            <button id="loginButton">Entrar</button>
+            <p id="login-error" class="hidden">Credenciais inválidas.</p>
+        </div>
+    </div>
+
+    <main id="admin-app" class="hidden">
+        <div class="card app-header">
+            <h2 id="adminWelcomeMessage"></h2>
+            <button class="logout-button">Sair</button>
+        </div>
+
+        <div class="card">
+            <h3>1. Carregar Rotas por Motorista</h3>
+            <div id="motorista-lista"></div>
+        </div>
+
+        <!-- NOVO BLOCO: Resetar Dados do Sistema -->
+        <div class="card">
+            <h3>2. Resetar Dados dos Motoristas</h3>
+            <p>Esta ação apagará todas as rotas atribuídas e o progresso de verificação de *todos* os motoristas, restaurando o sistema ao seu estado inicial de rotas vazias. Os usuários (contas) serão mantidos.</p>
+            <button id="reset-data-button" class="danger-button">Zerar Dados dos Motoristas</button>
+            <div id="reset-status" class="motorista-status"></div>
+        </div>
+        <!-- FIM DO NOVO BLOCO -->
+
+    </main>
+
+    <script>
+        // PDF.js worker setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const initialDatabaseState = {
+            users: {
+                "admin": { password: "admin", name: "Administrador", isAdmin: true },
+                "joao.silva": { password: "123", name: "João Silva", isAdmin: false },
+                "maria.souza": { password: "456", name: "Maria Souza", isAdmin: false },
+                "motorista3": { password: "789", name: "Carlos Pereira", isAdmin: false }
+            },
+            routes: {
+                "joao.silva": [], "maria.souza": [], "motorista3": []
+            }
+        };
+
+        let fakeDatabase;
+        const storedDb = localStorage.getItem('fakeDatabase');
+        fakeDatabase = storedDb ? JSON.parse(storedDb) : JSON.parse(JSON.stringify(initialDatabaseState));
+
+        const loginScreen = document.getElementById('login-screen');
+        const adminScreen = document.getElementById('admin-app');
+        const loginButton = document.getElementById('loginButton');
+        const loginError = document.getElementById('login-error');
+        const adminWelcomeMessage = document.getElementById('adminWelcomeMessage');
+
+        // Referência ao novo botão e div de status
+        let resetDataButton; // Declarado aqui para ser acessível após o DOM ser carregado
+        let resetStatusDiv; // Declarado aqui
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializa referências aos elementos do DOM após o carregamento
+            resetDataButton = document.getElementById('reset-data-button');
+            resetStatusDiv = document.getElementById('reset-status');
+
+            // Adiciona o listener ao novo botão
+            if (resetDataButton) {
+                resetDataButton.addEventListener('click', handleResetSystem);
+            }
+        });
+
+
+        document.querySelector('.logout-button').addEventListener('click', () => {
+            adminScreen.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            loginError.classList.add('hidden'); // Clear any previous login error
+        });
+
+        loginButton.addEventListener('click', handleLogin);
+        document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
+
+        function handleLogin() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const user = fakeDatabase.users[username];
+
+            if (user && user.password === password && user.isAdmin) {
+                loginScreen.classList.add('hidden');
+                loginError.classList.add('hidden');
+                adminWelcomeMessage.textContent = `Bem-vindo, ${user.name}`;
+                adminScreen.classList.remove('hidden');
+                renderMotoristasComUpload();
+            } else {
+                loginError.textContent = "Credenciais inválidas.";
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        function renderMotoristasComUpload() {
+            const listaDiv = document.getElementById('motorista-lista');
+            listaDiv.innerHTML = '';
+
+            const motoristas = Object.entries(fakeDatabase.users).filter(([_, u]) => !u.isAdmin);
+
+            if (motoristas.length === 0) {
+                listaDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhum motorista cadastrado para atribuição de rota.</p>";
+                return;
+            }
+
+            motoristas.forEach(([username, user]) => {
+                const card = document.createElement('div');
+                card.className = 'motorista-card card'; // Use 'card' class for base styling
+
+                card.innerHTML = `
+                    <div class="motorista-info">
+                        <strong>${user.name}</strong> <small>(${username})</small>
+                    </div>
+                    <div class="motorista-actions">
+                        <input type="file" accept="application/pdf" id="upload-${username}">
+                        <button onclick="processarPDFMotorista('${username}')">Processar Rota</button>
+                    </div>
+                    <div id="status-${username}" class="motorista-status"></div>
+                `;
+
+                listaDiv.appendChild(card);
+            });
+        }
+
+        async function processarPDFMotorista(username) {
+            const input = document.getElementById(`upload-${username}`);
+            const status = document.getElementById(`status-${username}`);
+            const button = input.nextElementSibling; // Get the button next to the input
+
+            if (!input.files.length) {
+                status.innerText = "Nenhum arquivo selecionado.";
+                status.className = 'motorista-status result-info';
+                return;
+            }
+
+            const file = input.files[0];
+            status.innerText = "Processando PDF...";
+            status.className = 'motorista-status result-info';
+            button.disabled = true; // Disable button during processing
+
+            try {
+                const allText = await extractTextFromPdf(file, status);
+                const pacotes = parsePackagesFromText(allText);
+
+                fakeDatabase.routes[username] = pacotes;
+                localStorage.setItem('fakeDatabase', JSON.stringify(fakeDatabase));
+
+                status.innerText = `✅ ${pacotes.length} pacotes atribuídos a ${username}`;
+                status.className = 'motorista-status result-success';
+            } catch (err) {
+                status.innerText = `Erro ao processar: ${err.message}`;
+                status.className = 'motorista-status result-error';
+                console.error("Erro no processamento do PDF:", err);
+            } finally {
+                button.disabled = false; // Re-enable button
+                input.value = ''; // Clear file input
+            }
+        }
+
+        async function extractTextFromPdf(file, statusElement) {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async (event) => {
+                    try {
+                        const pdf = await pdfjsLib.getDocument(event.target.result).promise;
+                        let allText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            if (statusElement) statusElement.textContent = `Processando página ${i} de ${pdf.numPages}...`;
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            allText += textContent.items.map(item => item.str).join(' ');
+                        }
+                        resolve(allText);
+                    } catch (err) { reject(err); }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function parsePackagesFromText(text) {
+            const packages = [];
+            const packageIdRegex = /\d{11}/g;
+            const packageIds = text.match(packageIdRegex);
+            if (!packageIds) return [];
+
+            const textParts = text.split(packageIdRegex);
+
+            packageIds.forEach((packageId, index) => {
+                const context = textParts[index + 1] || ''; 
+                
+                const detailsRegex = new RegExp(
+                    String.raw`(?<address>[A-ZÀ-ÿa-z0-9\s.,ªºº/-]+?)\s+(?<number>\d+|S\/N|Casa|Loja|APTO|Km|Bl)\s*(?:\s*-\s*(?<complement>[A-ZÀ-ÿa-z0-9\s.,ªºº/-]*?))?\s+(?:BAIRRO\s*)?(?<neighborhood>[A-ZÀ-ÿa-z0-9\s\-\.]+?)\s+(?<city>(Ilhabela|Caraguatatuba|São Sebastião|Ubatuba))\s+(?<cep>\d{8})\s+(?<type>[CR])`,
+                    'i'
+                );
+
+                const detailsMatch = context.match(detailsRegex);
+
+                const preContext = textParts[index] || '';
+                const stopOrderMatch = preContext.match(/(\d+[A-Z]*)(?=\s*\d{11})/);
+                const stop = stopOrderMatch ? stopOrderMatch[1].trim() : 'N/A';
+
+                if (detailsMatch && detailsMatch.groups) {
+                    const { address, number, complement, neighborhood } = detailsMatch.groups;
+                    
+                    const fullAddress = `${address.trim()}, ${number.trim()}`.replace(/\s+/g, ' ');
+                    const finalComplement = (complement || 'Sem complemento').trim();
+
+                    packages.push({
+                        id: `item-${packageId}`,
+                        ordem_parada: stop,
+                        produto_codigo: packageId,
+                        endereco: fullAddress,
+                        bairro: neighborhood.trim(),
+                        referencias: finalComplement,
+                        scanned: false
+                    });
+                } else {
+                    console.warn(`Não foi possível extrair detalhes para o pacote: ${packageId}. Contexto: "${context.substring(0, Math.min(context.length, 200))}..."`);
+                    packages.push({
+                        id: `item-${packageId}`,
+                        ordem_parada: stop,
+                        produto_codigo: packageId,
+                        endereco: 'Endereço não extraído (verificar PDF)',
+                        bairro: 'Bairro não extraído',
+                        referencias: 'Referência não extraída',
+                        scanned: false
+                    });
+                }
+            });
+
+            return packages;
+        }
+
+        // NOVA FUNÇÃO: Lógica para zerar os dados
+        function handleResetSystem() {
+            if (confirm("Tem certeza que deseja zerar os dados de rotas de TODOS os motoristas? Esta ação não pode ser desfeita.")) {
+                // Restaurar apenas a parte 'routes' do banco de dados para seu estado inicial vazio
+                fakeDatabase.routes = JSON.parse(JSON.stringify(initialDatabaseState.routes));
+
+                // Salvar o estado atualizado no localStorage
+                localStorage.setItem('fakeDatabase', JSON.stringify(fakeDatabase));
+
+                // Atualizar a interface do usuário
+                renderMotoristasComUpload(); // Re-renderiza a lista para mostrar que as rotas estão zeradas
+                
+                if (resetStatusDiv) {
+                    resetStatusDiv.textContent = "✅ Dados de rotas dos motoristas zerados com sucesso!";
+                    resetStatusDiv.className = 'motorista-status result-success';
+                    setTimeout(() => {
+                        resetStatusDiv.textContent = '';
+                        resetStatusDiv.className = 'motorista-status';
+                    }, 5000); // Limpa a mensagem após 5 segundos
+                }
+
+            } else {
+                if (resetStatusDiv) {
+                    resetStatusDiv.textContent = "Operação de zerar dados cancelada.";
+                    resetStatusDiv.className = 'motorista-status result-info';
+                    setTimeout(() => {
+                        resetStatusDiv.textContent = '';
+                        resetStatusDiv.className = 'motorista-status';
+                    }, 3000); // Limpa a mensagem após 3 segundos
+                }
+            }
+        }
+
+    </script>
+</body>
+
+</html>

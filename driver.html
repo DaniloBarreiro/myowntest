@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Carga - Motorista</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+
+<body>
+    <div id="login-screen">
+        <div class="card login-container">
+            <h1>Verificador de Carga</h1>
+            <p>Entre com seu usuário e senha.</p>
+            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
+            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
+            <button id="loginButton">Entrar</button>
+            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
+        </div>
+    </div>
+
+    <main id="app" class="hidden">
+        <div class="card app-header">
+            <h2 id="welcomeMessage"></h2>
+            <button class="logout-button">Sair</button>
+        </div>
+        <div class="card" id="scanner-section">
+            <div id="qr-reader">
+                <div id="qr-reader-placeholder">A câmera aparecerá aqui</div>
+            </div>
+            <div id="scanner-controls">
+                <button id="startScanButton">📷 Iniciar Leitura</button>
+                <button id="manualEntryButton">⌨️ Digitar Código</button>
+            </div>
+            <p id="scan-result"></p>
+        </div>
+        <div class="card" id="route-list-section">
+            <div class="app-header">
+                <h2>Pacotes da Rota</h2>
+                <button id="toggle-list-button">Esconder</button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+                <span id="progressText">0%</span>
+            </div>
+            <div id="full-route-list"></div>
+        </div>
+    </main>
+
+    <div id="manualEntryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h3>Digitar Código do Pacote</h3>
+            <input type="text" id="manualCodeInput" placeholder="Insira o código aqui...">
+            <button id="submitManualCode">Verificar Código</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialDatabaseState = {
+                users: { "admin": { password: "admin", name: "Administrador", isAdmin: true }, "joao.silva": { password: "123", name: "João Silva", isAdmin: false }, "maria.souza": { password: "456", name: "Maria Souza", isAdmin: false }, "motorista3": { password: "789", name: "Carlos Pereira", isAdmin: false } },
+                routes: { "joao.silva": [], "maria.souza": [], "motorista3": [] }
+            };
+
+            let fakeDatabase;
+            const storedDb = localStorage.getItem('fakeDatabase');
+            fakeDatabase = storedDb ? JSON.parse(storedDb) : JSON.parse(JSON.stringify(initialDatabaseState));
+
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app');
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('login-error');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const startScanButton = document.getElementById('startScanButton');
+
+            let routeData = [];
+            let html5QrCode;
+            let isScanCooldown = false;
+            let audioContext = null;
+
+            document.querySelector('.logout-button').addEventListener('click', handleLogout);
+            loginButton.addEventListener('click', handleLogin);
+            document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
+
+            function initAudioContext() {
+                if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            function playSound(type) {
+                if (!audioContext) return;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                if (type === 'success') {
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                } else {
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                }
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+
+            function handleLogin() {
+                initAudioContext();
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const user = fakeDatabase.users[username];
+
+                if (user && user.password === password && !user.isAdmin) {
+                    loginScreen.classList.add('hidden');
+                    loginError.classList.add('hidden');
+                    welcomeMessage.textContent = `Bem-vindo, ${user.name}!`;
+                    appScreen.classList.remove('hidden');
+                    loadUserRoute(username);
+                } else {
+                    playSound('error');
+                    loginError.textContent = user && user.isAdmin ? "Acesso de admin não permitido aqui." : "Usuário ou senha inválidos.";
+                    loginError.classList.remove('hidden');
+                }
+            }
+
+            function handleLogout() {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(err => console.error(err));
+                }
+                appScreen.classList.add('hidden');
+                loginScreen.classList.remove('hidden');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+
+            startScanButton.addEventListener('click', startScanner);
+
+            function loadUserRoute(username) {
+                routeData = fakeDatabase.routes[username] || [];
+                html5QrCode = new Html5Qrcode("qr-reader");
+                renderFullList();
+                updateProgress();
+            }
+
+            function validateCode(code) {
+                if (isScanCooldown) return;
+                isScanCooldown = true;
+                setTimeout(() => { isScanCooldown = false; }, 1500);
+
+                const foundItem = routeData.find(item => item.produto_codigo === code);
+                if (foundItem) {
+                    if (!foundItem.scanned) {
+                        foundItem.scanned = true;
+                        playSound('success');
+                        displayFeedback(`Código ${code} OK!`, "success");
+                        const itemElement = document.getElementById(foundItem.id);
+                        if (itemElement) itemElement.querySelector('.status-indicator').classList.add('scanned');
+                        updateProgress();
+                    } else {
+                        playSound('error');
+                        displayFeedback(`Código ${code} já foi verificado.`, "info");
+                    }
+                } else {
+                    playSound('error');
+                    displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
+                }
+            }
+
+            function startScanner() {
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().then(() => {
+                        startScanButton.textContent = "📷 Iniciar Leitura";
+                        document.getElementById('qr-reader-placeholder').style.display = 'flex';
+                    }).catch(err => console.error(err));
+                    return;
+                }
+                document.getElementById('qr-reader-placeholder').style.display = 'none';
+                startScanButton.disabled = true;
+                startScanButton.textContent = "Carregando...";
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => validateCode(decodedText))
+                    .then(() => {
+                        startScanButton.disabled = false;
+                        startScanButton.textContent = "Parar Leitura";
+                    }).catch(err => {
+                        alert(`Erro ao iniciar a câmera: ${err}. Verifique as permissões.`);
+                        startScanButton.disabled = false;
+                        startScanButton.textContent = "📷 Iniciar Leitura";
+                        document.getElementById('qr-reader-placeholder').style.display = 'flex';
+                    });
+            }
+
+            const manualEntryButton = document.getElementById('manualEntryButton');
+            const manualEntryModal = document.getElementById('manualEntryModal');
+            const closeModalButton = document.querySelector('.close-button');
+            const submitManualCode = document.getElementById('submitManualCode');
+            const toggleListButton = document.getElementById('toggle-list-button');
+            manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
+            closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
+            submitManualCode.addEventListener('click', processManualCode);
+            toggleListButton.addEventListener('click', toggleRouteList);
+            window.addEventListener('click', (event) => { if (event.target == manualEntryModal) manualEntryModal.style.display = 'none'; });
+
+            function renderFullList() {
+                const listDiv = document.getElementById('full-route-list');
+                listDiv.innerHTML = '';
+                if (!routeData || routeData.length === 0) {
+                    listDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>";
+                    return;
+                }
+                routeData.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'route-item';
+                    itemDiv.id = item.id;
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'item-info';
+                    // ALTERAÇÃO AQUI: Exibe apenas Parada e Código
+                    itemInfo.innerHTML = `
+                        <p>Parada: <strong>${item.ordem_parada}</strong> | Código: <strong>${item.produto_codigo}</strong></p>
+                    `;
+                    const statusIndicator = document.createElement('div');
+                    statusIndicator.className = 'status-indicator';
+                    if (item.scanned) statusIndicator.classList.add('scanned');
+                    itemDiv.appendChild(itemInfo);
+                    itemDiv.appendChild(statusIndicator);
+                    listDiv.appendChild(itemDiv);
+                });
+            }
+            function updateProgress() { const bar = document.getElementById('progressBar'); const text = document.getElementById('progressText'); const sButton = document.getElementById('startScanButton'); const mButton = document.getElementById('manualEntryButton'); if (!routeData || routeData.length === 0) { bar.style.width = '0%'; text.textContent = 'Nenhuma Rota'; sButton.disabled = true; mButton.disabled = true; return; } sButton.disabled = false; mButton.disabled = false; const scannedCount = routeData.filter(item => item.scanned).length; const percentage = Math.round((scannedCount / routeData.length) * 100); bar.style.width = `${percentage}%`; text.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`; if (percentage === 100) { displayFeedback("🎉 Carga Completa!", "success", false); if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.error(err)); sButton.textContent = "Carga Verificada"; document.getElementById('qr-reader-placeholder').style.display = 'flex'; } sButton.disabled = true; } }
+            function processManualCode() { const input = document.getElementById('manualCodeInput'); const code = input.value.trim(); if (code) { validateCode(code); input.value = ''; manualEntryModal.style.display = 'none'; } }
+            document.getElementById('manualCodeInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') processManualCode(); });
+            const scanResultEl = document.getElementById('scan-result');
+            function displayFeedback(message, type, autoClear = true) { scanResultEl.innerHTML = message; scanResultEl.className = `result-${type}`; if (autoClear) { setTimeout(() => { scanResultEl.innerHTML = ''; scanResultEl.className = ''; }, 4000); } }
+            function toggleRouteList() { const listDiv = document.getElementById('full-route-list'); const isHidden = listDiv.classList.toggle('hidden'); toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder'; }
+        });
+    </script>
+</body>
+
+</html>
