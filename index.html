@@ -3,321 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logística Express - Sistema de Entregas</title>
+    <title>Sistema de Verificação QR Code</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
-    </script>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --success: #2ecc71;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --light: #ecf0f1;
-            --dark: #34495e;
-            --text: #333;
-            --background: #f8f9fa;
-        }
-        
         body {
-            background: linear-gradient(135deg, #1e5799, #207cca);
-            color: var(--text);
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: #fff;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             padding: 20px;
         }
         
         .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 1200px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            margin: 20px auto;
-            transition: all 0.3s ease;
-        }
-        
-        /* Tela de Login */
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            min-height: 600px;
-        }
-        
-        .login-form {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-        
-        .login-logo {
-            font-size: 4rem;
-            color: var(--secondary);
-            margin-bottom: 20px;
-        }
-        
-        .login-title {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .login-subtitle {
-            color: #777;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-        
-        .btn {
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.3s;
-            font-size: 1rem;
-            width: 100%;
-        }
-        
-        .btn-primary {
-            background: var(--secondary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-3px);
-            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Aplicação Principal (após login) */
-        .app-container {
-            display: none;
+            max-width: 800px;
+            padding: 30px;
+            margin-top: 20px;
         }
         
         header {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .logout-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .upload-section {
-            padding: 25px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .file-input {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .file-input button {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-size: 1rem;
-        }
-        
-        .file-input button:hover {
-            background: #2980b9;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .file-name {
-            background: var(--background);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #ddd;
-            margin-top: 15px;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            background: var(--background);
-            border-bottom: 1px solid #eee;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             text-align: center;
-            border-left: 4px solid var(--secondary);
+            margin-bottom: 30px;
         }
         
-        .stat-card h3 {
-            font-size: 2.2rem;
-            color: var(--secondary);
-            margin-bottom: 5px;
-        }
-        
-        .stat-card p {
-            font-size: 1rem;
-            color: #777;
-        }
-        
-        .progress-container {
-            padding: 20px;
-            background: white;
-        }
-        
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
+        header h1 {
+            font-size: 2.5rem;
             margin-bottom: 10px;
-            font-size: 1rem;
-            font-weight: 500;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        .progress-bar {
-            height: 24px;
-            background: var(--light);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        header p {
+            font-size: 1.2rem;
+            color: #e0f7fa;
+            max-width: 600px;
+            margin: 0 auto;
         }
         
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success), #1abc9c);
-            border-radius: 12px;
-            transition: width 0.5s ease;
-            width: 0%;
-        }
-        
-        .verification-section {
+        .scanner-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
             padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-        }
-        
-        @media (min-width: 992px) {
-            .verification-section {
-                grid-template-columns: 1fr 1fr;
-            }
+            margin-bottom: 30px;
         }
         
         .scanner-container {
             position: relative;
-            height: 300px;
-            background: var(--primary);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
             border-radius: 12px;
             overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
         }
         
-        #scanner-view {
+        #qr-video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            display: block;
+            background: #000;
+            aspect-ratio: 4/3;
         }
         
         .scanner-overlay {
@@ -326,811 +84,391 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 20px;
+            pointer-events: none;
+        }
+        
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            border: 4px solid #00e676;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+        }
+        
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: #ff1744;
+            box-shadow: 0 0 10px #ff1744;
+            animation: scan 2s infinite ease-in-out;
+        }
+        
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+        
+        #qr-result {
             text-align: center;
+            margin: 25px 0;
+            font-size: 1.3rem;
+            min-height: 40px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .scanner-overlay i {
-            font-size: 4rem;
-            margin-bottom: 15px;
-            color: rgba(255,255,255,0.8);
+        .status {
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
         }
         
-        .scanner-overlay p {
-            font-size: 1.2rem;
-            max-width: 300px;
+        .status-pending {
+            background: #ff9800;
+            color: #333;
         }
         
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .status-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
             margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+            min-width: 180px;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(to right, #00c853, #00e676);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 20px rgba(0, 200, 83, 0.4);
         }
         
         .btn-danger {
-            background: var(--danger);
+            background: linear-gradient(to right, #ff5252, #ff1744);
             color: white;
         }
         
-        .btn-success {
-            background: var(--success);
+        .btn-danger:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 20px rgba(255, 23, 68, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #2979ff, #448aff);
             color: white;
         }
         
-        .btn:disabled {
-            background: #bdc3c7;
-            transform: none;
-            box-shadow: none;
-            cursor: not-allowed;
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 20px rgba(41, 121, 255, 0.4);
         }
         
-        .manual-input-container {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .manual-input {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .manual-input label {
-            font-weight: 500;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .manual-input label i {
-            color: var(--secondary);
-            font-size: 1.5rem;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .input-group input {
-            flex: 1;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: all 0.3s;
-        }
-        
-        .input-group input:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-        
-        .input-group button {
-            background: #9b59b6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-            min-width: 120px;
-        }
-        
-        .input-group button:hover {
-            background: #8e44ad;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .product-list-container {
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
             margin-top: 30px;
-            grid-column: 1 / -1;
         }
         
-        .product-list-header {
-            display: grid;
-            grid-template-columns: 100px 1fr 150px;
-            padding: 15px 20px;
-            background: var(--primary);
-            color: white;
-            border-radius: 8px 8px 0 0;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .product-list {
-            list-style: none;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .product-item {
-            display: grid;
-            grid-template-columns: 100px 1fr 150px;
-            padding: 15px 20px;
-            border-bottom: 1px solid #f5f5f5;
-            transition: background 0.3s;
-        }
-        
-        .product-item:nth-child(even) {
-            background: #f9f9f9;
-        }
-        
-        .product-item:hover {
-            background: #f0f8ff;
-        }
-        
-        .product-item.verified {
-            background: #f0fff4;
-        }
-        
-        .product-item.verified .item-number {
-            color: var(--success);
-        }
-        
-        .item-number {
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-        }
-        
-        .item-id {
-            font-family: monospace;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-        }
-        
-        .status-icon {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--light);
-        }
-        
-        .verified .status-icon {
-            background: var(--success);
-            color: white;
-        }
-        
-        .status-text {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-        
-        .status-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #80deea;
             text-align: center;
-            font-weight: bold;
-            display: none;
-            animation: fadeIn 0.3s ease;
-            grid-column: 1 / -1;
         }
         
-        .status-found {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .instructions ol {
+            padding-left: 25px;
+            max-width: 600px;
+            margin: 0 auto;
         }
         
-        .status-not-found {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .instructions li {
+            margin-bottom: 12px;
+            line-height: 1.6;
         }
         
         footer {
-            background: var(--light);
+            margin-top: 30px;
             text-align: center;
-            padding: 20px;
             font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.7);
         }
         
-        .empty-list {
-            text-align: center;
-            padding: 40px;
-            color: #777;
-            grid-column: 1 / -1;
-        }
-        
-        .empty-list i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #bdc3c7;
-        }
-        
-        .empty-list h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Responsividade */
-        @media (max-width: 768px) {
-            .product-list-header,
-            .product-item {
-                grid-template-columns: 80px 1fr 120px;
-            }
-            
-            .controls {
-                grid-template-columns: 1fr;
-            }
-            
-            .file-input {
-                flex-direction: column;
-            }
-            
-            .file-input button {
-                width: 100%;
-            }
-            
-            .login-form {
-                padding: 30px 20px;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            body {
-                padding: 10px;
-            }
-            
+        @media (max-width: 600px) {
             .container {
-                margin: 10px auto;
+                padding: 15px;
             }
             
-            .product-list-header,
-            .product-item {
-                grid-template-columns: 70px 1fr;
+            header h1 {
+                font-size: 1.8rem;
             }
             
-            .product-list-header div:nth-child(3),
-            .product-item .status-text {
-                display: none;
-            }
-            
-            .login-title {
-                font-size: 1.7rem;
-            }
-            
-            .scanner-overlay p {
+            .btn {
+                padding: 12px 20px;
+                min-width: 160px;
                 font-size: 1rem;
+            }
+            
+            .scanner-frame {
+                width: 85%;
+                height: 85%;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Tela de Login -->
-        <div class="login-container" id="login-container">
-            <div class="login-form">
-                <div class="login-logo">
-                    <i class="fas fa-truck"></i>
+        <header>
+            <h1><i class="fas fa-qrcode"></i> Sistema de Verificação QR Code</h1>
+            <p>Verifique a autenticidade de ingressos, documentos e credenciais</p>
+        </header>
+        
+        <div class="scanner-section">
+            <div class="scanner-container">
+                <video id="qr-video" playsinline></video>
+                <div class="scanner-overlay">
+                    <div class="scanner-frame">
+                        <div class="scanner-laser"></div>
+                    </div>
                 </div>
-                <h1 class="login-title">Logística Express</h1>
-                <p class="login-subtitle">Sistema de verificação de entregas para motoristas</p>
-                
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username"><i class="fas fa-user"></i> Usuário</label>
-                        <input type="text" id="username" class="form-control" placeholder="Digite seu usuário" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password"><i class="fas fa-lock"></i> Senha</label>
-                        <input type="password" id="password" class="form-control" placeholder="Digite sua senha" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
-                    </button>
-                    
-                    <div class="demo-credentials" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; font-size: 0.9rem;">
-                        <p><strong>Credenciais de Demonstração:</strong></p>
-                        <p>Usuário: <strong>motorista</strong></p>
-                        <p>Senha: <strong>senha123</strong></p>
-                    </div>
-                </form>
+            </div>
+            
+            <div id="qr-result">
+                <span class="status status-pending">Aguardando leitura...</span>
+            </div>
+            
+            <div class="btn-container">
+                <button id="start-btn" class="btn btn-primary">
+                    <i class="fas fa-play-circle"></i> Iniciar Câmera
+                </button>
+                <button id="stop-btn" class="btn btn-danger">
+                    <i class="fas fa-stop-circle"></i> Parar Câmera
+                </button>
+                <button id="toggle-camera-btn" class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i> Trocar Câmera
+                </button>
             </div>
         </div>
         
-        <!-- Aplicação Principal (após login) -->
-        <div class="app-container" id="app-container">
-            <header>
-                <h1><i class="fas fa-truck-loading"></i> Sistema de Verificação de Entregas</h1>
-                <div class="user-info">
-                    <div class="user-avatar" id="user-avatar">M</div>
-                    <div>
-                        <div id="user-name">Motorista</div>
-                        <button class="logout-btn" id="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </button>
-                    </div>
-                </div>
-            </header>
-            
-            <div class="upload-section">
-                <h2><i class="fas fa-file-pdf"></i> Carregar Roteiro de Entregas</h2>
-                <div class="file-input">
-                    <input type="file" id="pdf-upload" accept=".pdf" style="display: none;">
-                    <button id="upload-button">
-                        <i class="fas fa-upload"></i> Selecionar PDF
-                    </button>
-                </div>
-                <div id="file-name" class="file-name">
-                    <i class="fas fa-file"></i> Nenhum arquivo selecionado
-                </div>
-            </div>
-            
-            <div class="stats-container">
-                <div class="stat-card">
-                    <h3 id="total-items">0</h3>
-                    <p>Total de Itens</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="verified-items">0</h3>
-                    <p>Itens Verificados</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="pending-items">0</h3>
-                    <p>Itens Pendentes</p>
-                </div>
-            </div>
-            
-            <div class="progress-container">
-                <div class="progress-text">
-                    <span>Progresso das Entregas</span>
-                    <span id="progress-percent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-bar"></div>
-                </div>
-            </div>
-            
-            <div class="verification-section">
-                <div>
-                    <div class="scanner-container">
-                        <video id="scanner-view" playsinline></video>
-                        <div class="scanner-overlay" id="scanner-overlay">
-                            <i class="fas fa-camera"></i>
-                            <p>Clique em Iniciar Escaneamento para verificar produtos</p>
-                        </div>
-                    </div>
-                    
-                    <div class="controls">
-                        <button id="scan-button" class="btn btn-primary" disabled>
-                            <i class="fas fa-play"></i> Iniciar Escaneamento
-                        </button>
-                        <button id="stop-button" class="btn btn-danger" disabled>
-                            <i class="fas fa-stop"></i> Parar
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="manual-input-container">
-                    <div class="manual-input">
-                        <label>
-                            <i class="fas fa-keyboard"></i> Digitação Manual
-                        </label>
-                        <p>Digite o código do pacote para verificação</p>
-                        
-                        <div class="input-group">
-                            <input type="text" id="manual-code" placeholder="ID do pacote ou número do item">
-                            <button id="manual-submit">
-                                <i class="fas fa-check"></i> Verificar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="status-message" class="status-message"></div>
-                
-                <div class="product-list-container">
-                    <h2><i class="fas fa-list"></i> Lista Completa de Produtos</h2>
-                    
-                    <div class="product-list-header">
-                        <div>N.º</div>
-                        <div>ID do Pacote</div>
-                        <div>Status</div>
-                    </div>
-                    
-                    <ul id="product-list" class="product-list">
-                        <li class="empty-list">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h3>Nenhum produto carregado</h3>
-                            <p>Carregue um PDF para ver a lista de produtos</p>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <footer>
-                <p>Sistema de Verificação de Entregas &copy; 2023 | Funciona em dispositivos móveis e desktop</p>
-            </footer>
+        <div class="instructions">
+            <h2><i class="fas fa-info-circle"></i> Como usar:</h2>
+            <ol>
+                <li>Clique em "Iniciar Câmera" para ativar a câmera do dispositivo</li>
+                <li>Posicione o QR code dentro da área destacada</li>
+                <li>O sistema irá automaticamente detectar e validar o código</li>
+                <li>Use "Trocar Câmera" para alternar entre frontal e traseira</li>
+                <li>Clique em "Parar Câmera" quando terminar</li>
+            </ol>
         </div>
     </div>
+    
+    <footer>
+        <p>Sistema de Verificação QR Code &copy; 2023 - Todos os direitos reservados</p>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos DOM
-            const loginContainer = document.getElementById('login-container');
-            const appContainer = document.getElementById('app-container');
-            const loginForm = document.getElementById('login-form');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const logoutBtn = document.getElementById('logout-btn');
-            const userAvatar = document.getElementById('user-avatar');
-            const userName = document.getElementById('user-name');
-            
-            const uploadButton = document.getElementById('upload-button');
-            const pdfUpload = document.getElementById('pdf-upload');
-            const fileName = document.getElementById('file-name');
-            const scanButton = document.getElementById('scan-button');
-            const stopButton = document.getElementById('stop-button');
-            const scannerView = document.getElementById('scanner-view');
-            const scannerOverlay = document.getElementById('scanner-overlay');
-            const statusMessage = document.getElementById('status-message');
-            const productList = document.getElementById('product-list');
-            const manualCodeInput = document.getElementById('manual-code');
-            const manualSubmitButton = document.getElementById('manual-submit');
-            const progressBar = document.getElementById('progress-bar');
-            const progressPercent = document.getElementById('progress-percent');
-            const totalItemsElement = document.getElementById('total-items');
-            const verifiedItemsElement = document.getElementById('verified-items');
-            const pendingItemsElement = document.getElementById('pending-items');
-            
-            // Variáveis de estado
-            let scannerActive = false;
-            let codeReader;
-            let deliveryData = [];
-            let pdfLoaded = false;
-            let verifiedItems = 0;
-            let totalItems = 0;
-            
-            // Verificar se o usuário já está logado
-            function checkLogin() {
-                const user = localStorage.getItem('currentDriver');
-                if (user) {
-                    showApp(JSON.parse(user));
-                }
-            }
-            
-            // Mostrar aplicação principal
-            function showApp(user) {
-                loginContainer.style.display = 'none';
-                appContainer.style.display = 'block';
+        // Elementos DOM
+        const videoElement = document.getElementById('qr-video');
+        const resultElement = document.getElementById('qr-result');
+        const startButton = document.getElementById('start-btn');
+        const stopButton = document.getElementById('stop-btn');
+        const toggleCameraButton = document.getElementById('toggle-camera-btn');
+        
+        let scanning = false;
+        let stream = null;
+        let usingFrontCamera = false;
+        
+        // Iniciar a câmera
+        async function startCamera() {
+            try {
+                // Parar qualquer stream existente
+                stopCamera();
                 
-                // Atualizar informações do usuário
-                const initials = user.username.charAt(0).toUpperCase();
-                userAvatar.textContent = initials;
-                userName.textContent = user.username;
-            }
-            
-            // Processar login
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+                // Configuração da câmera
+                const constraints = {
+                    video: { 
+                        facingMode: usingFrontCamera ? "user" : "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                };
                 
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value;
+                // Solicitar acesso à câmera
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                // Verificar credenciais (em um sistema real, isso seria feito no servidor)
-                if (authenticateUser(username, password)) {
-                    const user = {
-                        id: Date.now(),
-                        username: username,
-                        loginTime: new Date().toISOString()
+                // Configurar o elemento de vídeo
+                videoElement.srcObject = stream;
+                videoElement.setAttribute("playsinline", true);
+                
+                // Esperar o vídeo estar pronto
+                await new Promise((resolve) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play().then(resolve).catch(e => {
+                            console.error("Erro ao reproduzir vídeo:", e);
+                            resultElement.innerHTML = '<span class="status status-error">Erro ao iniciar a câmera: ' + e.message + '</span>';
+                        });
                     };
-                    
-                    // Salvar usuário no localStorage
-                    localStorage.setItem('currentDriver', JSON.stringify(user));
-                    
-                    // Mostrar aplicação
-                    showApp(user);
-                } else {
-                    showStatus("Credenciais inválidas. Tente novamente.", false, loginContainer);
-                }
-            });
-            
-            // Função de autenticação (simulada)
-            function authenticateUser(username, password) {
-                // Credenciais válidas para demonstração
-                const validUsers = [
-                    { username: 'motorista', password: 'senha123' },
-                    { username: 'joao', password: 'entregas123' },
-                    { username: 'maria', password: 'transportadora' }
-                ];
-                
-                return validUsers.some(user => 
-                    user.username === username && user.password === password
-                );
-            }
-            
-            // Logout
-            logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('currentDriver');
-                location.reload();
-            });
-            
-            // Configurar upload de PDF
-            uploadButton.addEventListener('click', () => pdfUpload.click());
-            
-            pdfUpload.addEventListener('change', async function(e) {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    fileName.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name}`;
-                    
-                    try {
-                        // Processar PDF
-                        deliveryData = await processPDF(file);
-                        totalItems = deliveryData.length;
-                        verifiedItems = 0;
-                        
-                        totalItemsElement.textContent = totalItems;
-                        verifiedItemsElement.textContent = verifiedItems;
-                        pendingItemsElement.textContent = totalItems;
-                        
-                        updateProgressBar();
-                        
-                        // Renderizar lista de produtos
-                        renderProductList();
-                        
-                        pdfLoaded = true;
-                        scanButton.disabled = false;
-                        stopButton.disabled = false;
-                        
-                        showStatus(`PDF carregado com sucesso! ${totalItems} itens encontrados.`, true);
-                    } catch (error) {
-                        console.error("Erro ao processar PDF:", error);
-                        showStatus("Erro ao processar o PDF. Verifique o formato do arquivo.", false);
-                    }
-                }
-            });
-            
-            // Configurar botões de scanner
-            scanButton.addEventListener('click', startScanner);
-            stopButton.addEventListener('click', stopScanner);
-            
-            // Configurar verificação manual
-            manualSubmitButton.addEventListener('click', verifyManualCode);
-            manualCodeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') verifyManualCode();
-            });
-            
-            // Inicializar BarcodeDetector se suportado
-            if ('BarcodeDetector' in window) {
-                codeReader = new BarcodeDetector({ 
-                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_128'] 
                 });
-            } else {
-                scanButton.disabled = true;
-                showStatus("Seu navegador não suporta leitura de códigos de barras.", false);
-            }
-            
-            // Funções principais
-            function startScanner() {
-                if (!pdfLoaded) {
-                    showStatus("Por favor, carregue o PDF primeiro", false);
-                    return;
-                }
                 
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                    .then(function(stream) {
-                        scannerView.srcObject = stream;
-                        scannerActive = true;
-                        scannerOverlay.style.display = 'none';
-                        scanButton.disabled = true;
-                        stopButton.disabled = false;
-                        
-                        detectBarcode();
-                    })
-                    .catch(function(err) {
-                        console.error("Erro ao acessar a câmera: ", err);
-                        showStatus("Não foi possível acessar a câmera. Verifique as permissões.", false);
-                    });
-            }
-            
-            function stopScanner() {
-                if (scannerView.srcObject) {
-                    const tracks = scannerView.srcObject.getTracks();
-                    tracks.forEach(track => track.stop());
-                    scannerView.srcObject = null;
-                }
+                // Iniciar o scanner
+                scanning = true;
+                scanQRCode();
+                updateStatus('Aguardando leitura...', 'pending');
                 
-                scannerActive = false;
-                scannerOverlay.style.display = 'flex';
-                scanButton.disabled = false;
-                stopButton.disabled = true;
+            } catch (err) {
+                console.error("Erro ao acessar a câmera:", err);
+                updateStatus('Erro ao acessar a câmera: ' + err.message, 'error');
             }
+        }
+        
+        // Parar a câmera
+        function stopCamera() {
+            scanning = false;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoElement.srcObject = null;
+            updateStatus('Câmera desativada', 'pending');
+        }
+        
+        // Trocar entre câmeras
+        async function toggleCamera() {
+            usingFrontCamera = !usingFrontCamera;
+            if (stream) {
+                await startCamera();
+            }
+        }
+        
+        // Atualizar status na interface
+        function updateStatus(message, type) {
+            let statusClass = 'status-pending';
+            if (type === 'success') statusClass = 'status-success';
+            if (type === 'error') statusClass = 'status-error';
             
-            function detectBarcode() {
-                if (!scannerActive) return;
+            resultElement.innerHTML = `<span class="status ${statusClass}">${message}</span>`;
+        }
+        
+        // Função para escanear QR code
+        function scanQRCode() {
+            if (!scanning) return;
+            
+            // Verificar se o vídeo tem dados suficientes
+            if (videoElement.readyState >= videoElement.HAVE_METADATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
                 
-                codeReader.detect(scannerView)
-                    .then(barcodes => {
-                        if (barcodes.length > 0) {
-                            const barcode = barcodes[0].rawValue;
-                            verifyProduct(barcode);
-                        }
-                        requestAnimationFrame(detectBarcode);
-                    })
-                    .catch(err => {
-                        console.error("Erro na detecção: ", err);
-                        requestAnimationFrame(detectBarcode);
-                    });
-            }
-            
-            function verifyManualCode() {
-                const code = manualCodeInput.value.trim();
+                // Ajustar o canvas para o tamanho do vídeo
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                
+                // Desenhar o frame atual no canvas
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Obter dados da imagem
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Tentar decodificar o QR code
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
                 if (code) {
-                    verifyProduct(code);
-                    manualCodeInput.value = '';
-                }
-            }
-            
-            function verifyProduct(barcode) {
-                if (!pdfLoaded) {
-                    showStatus("Por favor, carregue o PDF primeiro", false);
+                    updateStatus("Código detectado: " + code.data, 'success');
+                    processQRCode(code.data);
+                    
+                    // Pausar brevemente para feedback visual
+                    scanning = false;
+                    setTimeout(() => {
+                        scanning = true;
+                        requestAnimationFrame(scanQRCode);
+                    }, 2000);
                     return;
                 }
-                
-                // Verificar se o código existe na lista de entregas
-                const foundIndex = deliveryData.findIndex(item => 
-                    item.id === barcode || 
-                    item.number === barcode
-                );
-                
-                if (foundIndex !== -1) {
-                    const foundProduct = deliveryData[foundIndex];
-                    
-                    // Atualizar apenas se ainda não foi verificado
-                    if (!foundProduct.verified) {
-                        foundProduct.verified = true;
-                        verifiedItems++;
-                        verifiedItemsElement.textContent = verifiedItems;
-                        pendingItemsElement.textContent = totalItems - verifiedItems;
-                        updateProgressBar();
-                        
-                        // Atualizar visualização da lista
-                        renderProductList();
-                    }
-                    
-                    showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
-                    
-                    // Rolagem para o item verificado
-                    const itemElement = document.getElementById(`product-${foundIndex}`);
-                    if (itemElement) {
-                        itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                } else {
-                    showStatus("Produto NÃO encontrado na lista", false);
-                }
             }
             
-            function updateProgressBar() {
-                const percentage = totalItems > 0 ? (verifiedItems / totalItems) * 100 : 0;
-                progressBar.style.width = `${percentage}%`;
-                progressPercent.textContent = `${Math.round(percentage)}%`;
-            }
+            // Continuar escaneando
+            requestAnimationFrame(scanQRCode);
+        }
+        
+        // Função para processar o QR code
+        function processQRCode(data) {
+            console.log("QR Code processado:", data);
             
-            function showStatus(message, isSuccess) {
-                statusMessage.textContent = message;
-                statusMessage.className = isSuccess ? 'status-message status-found' : 'status-message status-not-found';
-                statusMessage.style.display = 'block';
+            // Aqui você pode implementar sua lógica de validação:
+            // - Enviar para um servidor para verificação
+            // - Comparar com uma lista de códigos válidos
+            // - Decodificar e verificar informações
+            
+            // Exemplo de validação simples:
+            const isValid = data.startsWith('VALID-');
+            
+            if (isValid) {
+                // Código válido
+                updateStatus("Código válido: " + data, 'success');
                 
+                // Simulação de integração com sistema
                 setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 3000);
+                    updateStatus("Acesso autorizado! Bem-vindo.", 'success');
+                }, 1500);
+            } else {
+                // Código inválido
+                updateStatus("Código inválido: " + data, 'error');
             }
-            
-            function renderProductList() {
-                if (deliveryData.length === 0) {
-                    productList.innerHTML = `
-                        <li class="empty-list">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h3>Nenhum produto carregado</h3>
-                            <p>Carregue um PDF para ver a lista de produtos</p>
-                        </li>
-                    `;
-                    return;
-                }
-                
-                productList.innerHTML = '';
-                
-                deliveryData.forEach((product, index) => {
-                    const item = document.createElement('li');
-                    item.className = `product-item ${product.verified ? 'verified' : ''}`;
-                    item.id = `product-${index}`;
-                    
-                    item.innerHTML = `
-                        <div class="item-number">
-                            <span class="status-icon">
-                                ${product.verified ? '<i class="fas fa-check"></i>' : '<i class="fas fa-box"></i>'}
-                            </span>
-                            ${product.number}
-                        </div>
-                        <div class="item-id">${product.id}</div>
-                        <div class="status-text">
-                            ${product.verified 
-                                ? '<i class="fas fa-check-circle"></i> Verificado' 
-                                : '<i class="fas fa-clock"></i> Pendente'}
-                        </div>
-                    `;
-                    
-                    productList.appendChild(item);
-                });
-            }
-            
-            // Função para processar o PDF e extrair dados
-            async function processPDF(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                const data = [];
-                
-                // Processar cada página do PDF
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const text = textContent.items.map(item => item.str).join(' ');
-                    
-                    // Expressão regular para encontrar linhas com N.º e ID do pacote
-                    const regex = /(\d+[A-Z]*)\s+(\d{10,12})/g;
-                    let match;
-                    
-                    while ((match = regex.exec(text)) !== null) {
-                        const number = match[1];
-                        const id = match[2];
-                        
-                        // Verificar se já existe na lista
-                        if (!data.some(item => item.id === id)) {
-                            data.push({
-                                number: number,
-                                id: id,
-                                verified: false
-                            });
-                        }
-                    }
-                }
-                
-                return data;
-            }
-            
-            // Verificar login ao carregar a página
-            checkLogin();
-        });
+        }
+        
+        // Event listeners
+        startButton.addEventListener('click', startCamera);
+        stopButton.addEventListener('click', stopCamera);
+        toggleCameraButton.addEventListener('click', toggleCamera);
+        
+        // Parar a câmera quando a página for fechada
+        window.addEventListener('beforeunload', stopCamera);
+        
+        // Dica inicial para dispositivos móveis
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+            updateStatus("Toque em 'Iniciar Câmera' para começar", 'pending');
+        }
     </script>
 </body>
 </html>
