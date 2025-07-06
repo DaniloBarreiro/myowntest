@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logística Express - Sistema de Entregas</title>
+    <title>Logística Express - Sistema Integrado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Adicionando jsPDF para geração de relatórios -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
     </script>
@@ -27,6 +30,7 @@
             --dark: #34495e;
             --text: #333;
             --background: #f8f9fa;
+            --admin-primary: #8e44ad;
         }
         
         body {
@@ -41,7 +45,7 @@
         
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -140,12 +144,423 @@
             box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
         }
         
-        /* Aplicação Principal (após login) */
+        /* Painel Administrativo */
+        .admin-container {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        .admin-header {
+            background: var(--admin-primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 20px;
+            background: #7d3c98;
+            padding: 15px 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .admin-content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--admin-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .drivers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .driver-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid #eee;
+        }
+        
+        .driver-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border-color: var(--admin-primary);
+        }
+        
+        .driver-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .driver-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--admin-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .driver-info {
+            flex: 1;
+        }
+        
+        .driver-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .driver-id {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .driver-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .driver-details {
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+        
+        .detail-label {
+            color: #777;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-weight: 500;
+        }
+        
+        .route-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .route-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--admin-primary);
+        }
+        
+        .route-file {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+            margin-top: 10px;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-icon {
+            padding: 10px 15px;
+            min-width: 120px;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .assign-route-form {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        @media (min-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .file-input-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-input-area:hover, .file-input-area.dragover {
+            border-color: var(--admin-primary);
+            background: #f9f0ff;
+        }
+        
+        .file-input-area i {
+            font-size: 3rem;
+            color: var(--admin-primary);
+            margin-bottom: 15px;
+        }
+        
+        .file-input-text {
+            margin-bottom: 15px;
+        }
+        
+        .file-input-btn {
+            background: var(--admin-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .file-input-btn:hover {
+            background: #7d3c98;
+        }
+        
+        .file-preview {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+        }
+        
+        .file-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .file-preview-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .file-preview-icon {
+            font-size: 2.5rem;
+            color: var(--danger);
+        }
+        
+        footer {
+            background: var(--light);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+        
+        .empty-list {
+            text-align: center;
+            padding: 40px;
+            color: #777;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-list i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        
+        .empty-list h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .admin-nav {
+                flex-wrap: wrap;
+            }
+            
+            .drivers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 10px auto;
+            }
+            
+            .admin-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .admin-nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-left: 4px solid var(--admin-primary);
+        }
+        
+        .stat-card h3 {
+            font-size: 2.2rem;
+            color: var(--admin-primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 1rem;
+            color: #777;
+        }
+        
+        /* Estilo para a tela do motorista */
         .app-container {
             display: none;
         }
         
-        header {
+        .driver-header {
             background: var(--primary);
             color: white;
             padding: 15px;
@@ -231,26 +646,6 @@
             padding: 15px;
             background: var(--background);
             border-bottom: 1px solid #eee;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            border-left: 4px solid var(--secondary);
-        }
-        
-        .stat-card h3 {
-            font-size: 1.8rem;
-            color: var(--secondary);
-            margin-bottom: 5px;
-        }
-        
-        .stat-card p {
-            font-size: 0.9rem;
-            color: #777;
         }
         
         .progress-container {
@@ -352,26 +747,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-top: 15px;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-warning {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
         }
         
         .manual-input-container {
@@ -552,37 +927,6 @@
             border: 1px solid #f5c6cb;
         }
         
-        footer {
-            background: var(--light);
-            text-align: center;
-            padding: 15px;
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-top: 15px;
-        }
-        
-        .empty-list {
-            text-align: center;
-            padding: 30px;
-            color: #777;
-            grid-column: 1 / -1;
-        }
-        
-        .empty-list i {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            color: #bdc3c7;
-        }
-        
-        .empty-list h3 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-        
-        .empty-list p {
-            font-size: 0.9rem;
-        }
-        
         .backend-preview {
             background: #f0f8ff;
             padding: 12px;
@@ -611,8 +955,57 @@
             100% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0); }
         }
         
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
         .scanner-pulse {
             animation: borderPulse 0.5s ease-out;
+        }
+        
+        .scanner-error {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        /* Estilo para relatórios */
+        .verification-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .verification-table th {
+            background-color: var(--admin-primary);
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: 600;
+        }
+        
+        .verification-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .verification-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .verification-table tr:hover {
+            background-color: #f0f0f8;
+        }
+        
+        .verification-table .verified {
+            color: var(--success);
+            font-weight: 500;
+        }
+        
+        .verification-table .pending {
+            color: var(--warning);
+            font-weight: 500;
         }
         
         /* Responsividade para dispositivos móveis */
@@ -710,6 +1103,86 @@
                 padding: 10px;
             }
         }
+
+        /* Adicionais para relatórios */
+        .report-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .report-stat {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .report-stat h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-success {
+            color: #28a745;
+        }
+        
+        .stat-warning {
+            color: #ffc107;
+        }
+        
+        .stat-danger {
+            color: #dc3545;
+        }
+        
+        .pending-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .pending-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .finalize-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -718,44 +1191,223 @@
         <div class="login-container" id="login-container">
             <div class="login-form">
                 <div class="login-logo">
-                    <i class="fas fa-truck"></i>
+                    <i class="fas fa-user-shield"></i>
                 </div>
                 <h1 class="login-title">Logística Express</h1>
-                <p class="login-subtitle">Sistema de verificação de entregas para motoristas</p>
+                <p class="login-subtitle">Sistema Integrado de Logística</p>
                 
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="username"><i class="fas fa-user"></i> Usuário</label>
-                        <input type="text" id="username" class="form-control" placeholder="Digite seu usuário" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password"><i class="fas fa-lock"></i> Senha</label>
-                        <input type="password" id="password" class="form-control" placeholder="Digite sua senha" required>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button class="btn btn-primary" id="admin-login-btn">
+                        <i class="fas fa-user-tie"></i> Acesso Administrador
                     </button>
-                    
-                    <div class="demo-credentials" style="margin-top: 20px; padding: 12px; background: #f9f9f9; border-radius: 8px; font-size: 0.85rem;">
-                        <p><strong>Credenciais de Demonstração:</strong></p>
-                        <p>Usuário: <strong>motorista</strong></p>
-                        <p>Senha: <strong>senha123</strong></p>
-                    </div>
-                </form>
+                    <button class="btn btn-primary" id="driver-login-btn">
+                        <i class="fas fa-truck"></i> Acesso Motorista
+                    </button>
+                </div>
             </div>
         </div>
         
-        <!-- Aplicação Principal (após login) -->
-        <div class="app-container" id="app-container">
-            <header>
+        <!-- Painel Administrativo -->
+        <div class="admin-container" id="admin-container">
+            <header class="admin-header">
+                <h1><i class="fas fa-tachometer-alt"></i> Painel de Controle - Logística Express</h1>
+                <div class="user-info">
+                    <button class="logout-btn" id="admin-logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </header>
+            
+            <nav class="admin-nav">
+                <a href="#" class="nav-link" data-target="drivers">
+                    <i class="fas fa-users"></i> Motoristas
+                </a>
+                <a href="#" class="nav-link" data-target="routes">
+                    <i class="fas fa-route"></i> Rotas
+                </a>
+                <a href="#" class="nav-link active" data-target="reports">
+                    <i class="fas fa-chart-bar"></i> Relatórios
+                </a>
+            </nav>
+            
+            <div class="admin-content">
+                <!-- Gerenciamento de Motoristas -->
+                <div id="drivers" class="tab-content" style="display: none;">
+                    <div class="statistics-grid">
+                        <div class="stat-card">
+                            <h3 id="total-drivers">0</h3>
+                            <p>Motoristas Cadastrados</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="active-drivers">0</h3>
+                            <p>Motoristas Ativos</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="assigned-routes">0</h3>
+                            <p>Rotas Atribuídas</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="completed-routes">0%</h3>
+                            <p>Taxa de Conclusão</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-users"></i> Motoristas Cadastrados</h2>
+                            <button class="btn btn-primary" id="add-driver">
+                                <i class="fas fa-plus"></i> Novo Motorista
+                            </button>
+                        </div>
+                        
+                        <div class="drivers-grid">
+                            <!-- Conteúdo dinâmico será inserido aqui -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Atribuição de Rotas -->
+                <div id="routes" class="tab-content" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-route"></i> Atribuir Nova Rota</h2>
+                        </div>
+                        
+                        <div class="assign-route-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="driver-select">Selecionar Motorista</label>
+                                    <select id="driver-select" class="form-control">
+                                        <option value="">Selecione um motorista</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="route-name">Nome da Rota</label>
+                                    <input type="text" id="route-name" class="form-control" placeholder="Ex: Rota SP-025 - Centro para Zona Leste">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Carregar Arquivo de Rota (PDF)</label>
+                                <div class="file-input-area" id="file-drop-area">
+                                    <i class="fas fa-file-upload"></i>
+                                    <div class="file-input-text">
+                                        <p>Arraste e solte o arquivo PDF aqui</p>
+                                        <p>ou</p>
+                                    </div>
+                                    <button class="file-input-btn">
+                                        <i class="fas fa-folder-open"></i> Selecionar Arquivo
+                                    </button>
+                                    <input type="file" id="pdf-upload" accept=".pdf" style="display: none;">
+                                </div>
+                                
+                                <div class="file-preview" id="file-preview">
+                                    <div class="file-preview-header">
+                                        <h4>Arquivo Selecionado</h4>
+                                        <button class="btn btn-danger btn-sm" id="remove-file">
+                                            <i class="fas fa-times"></i> Remover
+                                        </button>
+                                    </div>
+                                    <div class="file-preview-content">
+                                        <i class="fas fa-file-pdf file-preview-icon"></i>
+                                        <div>
+                                            <div id="preview-file-name"></div>
+                                            <div id="preview-file-size"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="route-notes">Observações</label>
+                                <textarea id="route-notes" class="form-control" rows="4" placeholder="Adicione informações importantes sobre esta rota..."></textarea>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px;">
+                                <button class="btn" style="background: #ddd;">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button class="btn btn-primary" id="assign-route-btn">
+                                    <i class="fas fa-check"></i> Atribuir Rota
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-history"></i> Histórico de Atribuições</h2>
+                        </div>
+                        
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background-color: #f0f0f0;">
+                                        <th style="padding: 15px; text-align: left;">Motorista</th>
+                                        <th style="padding: 15px; text-align: left;">Rota</th>
+                                        <th style="padding: 15px; text-align: left;">Arquivo</th>
+                                        <th style="padding: 15px; text-align: left;">Data</th>
+                                        <th style="padding: 15px; text-align: left;">Status</th>
+                                        <th style="padding: 15px; text-align: center;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assignments-table-body">
+                                    <!-- Conteúdo dinâmico será inserido aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Relatórios -->
+                <div id="reports" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title"><i class="fas fa-chart-pie"></i> Relatório de Verificações</h2>
+                            <p>Lista de produtos verificados pelos motoristas</p>
+                        </div>
+                        
+                        <div style="overflow-x: auto;">
+                            <table class="verification-table">
+                                <thead>
+                                    <tr>
+                                        <th>Motorista</th>
+                                        <th>Número do Produto</th>
+                                        <th>ID do Pacote</th>
+                                        <th>Data/Hora</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="verifications-list">
+                                    <!-- Dados das verificações serão preenchidos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="no-verifications" class="empty-list">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>Nenhuma verificação encontrada</h3>
+                            <p>Quando os motoristas verificarem produtos, eles aparecerão aqui</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <footer>
+                <p>Sistema de Gerenciamento de Rotas &copy; 2023 | Painel Administrativo - Versão 2.0</p>
+            </footer>
+        </div>
+        
+        <!-- Tela do Motorista -->
+        <div class="app-container" id="driver-container">
+            <header class="driver-header">
                 <h1 style="font-size: 1.2rem;"><i class="fas fa-truck-loading"></i> Sistema de Verificação de Entregas</h1>
                 <div class="user-info">
                     <div class="user-avatar" id="user-avatar">M</div>
                     <div>
                         <div id="user-name" style="font-size: 0.9rem;">Motorista</div>
-                        <button class="logout-btn" id="logout-btn">
+                        <button class="logout-btn" id="driver-logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Sair
                         </button>
                     </div>
@@ -763,14 +1415,14 @@
             </header>
             
             <div class="backend-preview">
-                <h4><i class="fas fa-server"></i> Preparado para integração com PostgreSQL</h4>
-                <p>Esta versão online será integrada com um backend PostgreSQL em breve. Os dados atuais são armazenados localmente para demonstração.</p>
+                <h4><i class="fas fa-server"></i> Sistema Integrado</h4>
+                <p>As verificações feitas aqui serão imediatamente visíveis no painel administrativo.</p>
             </div>
             
             <div class="upload-section">
                 <h2><i class="fas fa-file-pdf"></i> Carregar Roteiro de Entregas</h2>
                 <div class="file-input">
-                    <input type="file" id="pdf-upload" accept=".pdf" style="display: none;">
+                    <input type="file" id="pdf-upload-driver" accept=".pdf" style="display: none;">
                     <button id="upload-button">
                         <i class="fas fa-upload"></i> Selecionar PDF
                     </button>
@@ -862,6 +1514,42 @@
                 </div>
             </div>
             
+            <!-- Adicionar seção de relatório -->
+            <div class="report-container" id="report-container" style="display: none;">
+                <div class="report-header">
+                    <h2><i class="fas fa-file-alt"></i> Relatório Final</h2>
+                    <button id="download-report" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Baixar PDF
+                    </button>
+                </div>
+                
+                <div class="report-stats">
+                    <div class="report-stat">
+                        <h3 class="stat-success" id="final-verified">0</h3>
+                        <p>Itens Verificados</p>
+                    </div>
+                    <div class="report-stat">
+                        <h3 class="stat-warning" id="final-pending">0</h3>
+                        <p>Itens Pendentes</p>
+                    </div>
+                    <div class="report-stat">
+                        <h3 class="stat-success" id="final-percent">0%</h3>
+                        <p>Taxa de Sucesso</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3><i class="fas fa-exclamation-triangle"></i> Itens Não Verificados</h3>
+                    <div id="pending-list" class="pending-list">
+                        <p>Nenhum item pendente</p>
+                    </div>
+                </div>
+                
+                <button id="finish-route" class="finalize-btn">
+                    <i class="fas fa-check-circle"></i> Finalizar Rota
+                </button>
+            </div>
+            
             <footer>
                 <p>Sistema de Verificação de Entregas &copy; 2023 | Leitura com feedback visual e sonoro</p>
             </footer>
@@ -869,475 +1557,934 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementos DOM
-            const loginContainer = document.getElementById('login-container');
-            const appContainer = document.getElementById('app-container');
-            const loginForm = document.getElementById('login-form');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const logoutBtn = document.getElementById('logout-btn');
-            const userAvatar = document.getElementById('user-avatar');
-            const userName = document.getElementById('user-name');
-            
-            const uploadButton = document.getElementById('upload-button');
-            const pdfUpload = document.getElementById('pdf-upload');
-            const fileName = document.getElementById('file-name');
-            const scanButton = document.getElementById('scan-button');
-            const stopButton = document.getElementById('stop-button');
-            const scannerView = document.getElementById('scanner-view');
-            const scannerContainer = document.getElementById('scanner-container');
-            const scannerOverlay = document.getElementById('scanner-overlay');
-            const statusMessage = document.getElementById('status-message');
-            const productList = document.getElementById('product-list');
-            const manualCodeInput = document.getElementById('manual-code');
-            const manualSubmitButton = document.getElementById('manual-submit');
-            const progressBar = document.getElementById('progress-bar');
-            const progressPercent = document.getElementById('progress-percent');
-            const totalItemsElement = document.getElementById('total-items');
-            const verifiedItemsElement = document.getElementById('verified-items');
-            const pendingItemsElement = document.getElementById('pending-items');
-            
-            // Variáveis de estado
-            let scannerActive = false;
-            let codeReader;
-            let deliveryData = [];
-            let pdfLoaded = false;
-            let verifiedItems = 0;
-            let totalItems = 0;
-            let canScan = true; // Controla o intervalo entre leituras
-            let cooldownInterval = null; // Referência do intervalo
-            let audioContext = null; // Contexto de áudio
-
-            // Verificar se o usuário já está logado
-            function checkLogin() {
-                const user = localStorage.getItem('currentDriver');
-                if (user) {
-                    showApp(JSON.parse(user));
-                    loadData();
+        // Banco de dados simulado em memória
+        const mockDatabase = {
+            drivers: [
+                {
+                    id: 1,
+                    name: "Carlos Silva",
+                    region: "Zona Leste",
+                    vehicle: "Fiat Ducato",
+                    status: "active",
+                    routes: [
+                        { id: 101, name: "SP-025 - Centro para Zona Leste", file: "rota_sp_025.pdf" }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Ana Costa",
+                    region: "Centro",
+                    vehicle: "Volkswagen Delivery",
+                    status: "active",
+                    routes: [
+                        { id: 102, name: "BH-018 - Centro Histórico", file: "rota_bh_018.pdf" }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "João Santos",
+                    region: "Zona Sul",
+                    vehicle: "Mercedes-Benz Sprinter",
+                    status: "inactive",
+                    routes: []
+                },
+                {
+                    id: 4,
+                    name: "Fernanda Oliveira",
+                    region: "Zona Oeste",
+                    vehicle: "Renault Master",
+                    status: "active",
+                    routes: []
+                },
+                {
+                    id: 5,
+                    name: "Roberto Almeida",
+                    region: "Centro",
+                    vehicle: "Ford Transit",
+                    status: "active",
+                    routes: [
+                        { id: 103, name: "RJ-042 - Barra da Tijuca", file: "rota_rj_042.pdf" }
+                    ]
                 }
-            }
-            
-            // Mostrar aplicação principal
-            function showApp(user) {
-                loginContainer.style.display = 'none';
-                appContainer.style.display = 'block';
-                
-                // Atualizar informações do usuário
-                const initials = user.username.charAt(0).toUpperCase();
-                userAvatar.textContent = initials;
-                userName.textContent = user.username;
-            }
-            
-            // Processar login
-            loginForm.addEventListener('submit', function(e) {
+            ],
+            routes: [
+                { id: 101, name: "SP-025 - Centro para Zona Leste", file: "rota_sp_025.pdf" },
+                { id: 102, name: "BH-018 - Centro Histórico", file: "rota_bh_018.pdf" },
+                { id: 103, name: "RJ-042 - Barra da Tijuca", file: "rota_rj_042.pdf" }
+            ],
+            assignments: [
+                { id: 1001, driverId: 1, routeId: 101, date: "2023-10-05", status: "active" },
+                { id: 1002, driverId: 2, routeId: 102, date: "2023-10-03", status: "completed" },
+                { id: 1003, driverId: 5, routeId: 103, date: "2023-10-01", status: "in_progress" }
+            ],
+            verifications: [],
+            reports: []
+        };
+
+        // Elementos DOM
+        const loginContainer = document.getElementById('login-container');
+        const adminContainer = document.getElementById('admin-container');
+        const driverContainer = document.getElementById('driver-container');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const driverLoginBtn = document.getElementById('driver-login-btn');
+        const adminLogoutBtn = document.getElementById('admin-logout-btn');
+        const driverLogoutBtn = document.getElementById('driver-logout-btn');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fileDropArea = document.getElementById('file-drop-area');
+        const pdfUpload = document.getElementById('pdf-upload');
+        const filePreview = document.getElementById('file-preview');
+        const removeFileBtn = document.getElementById('remove-file');
+        const previewFileName = document.getElementById('preview-file-name');
+        const driverGrid = document.querySelector('.drivers-grid');
+        const driverSelect = document.getElementById('driver-select');
+        const routeNameInput = document.getElementById('route-name');
+        const routeNotesInput = document.getElementById('route-notes');
+        const assignRouteBtn = document.getElementById('assign-route-btn');
+        const totalDrivers = document.getElementById('total-drivers');
+        const activeDrivers = document.getElementById('active-drivers');
+        const assignedRoutes = document.getElementById('assigned-routes');
+        const completedRoutes = document.getElementById('completed-routes');
+        const assignmentsTableBody = document.getElementById('assignments-table-body');
+        const addDriverBtn = document.getElementById('add-driver');
+        const verificationsList = document.getElementById('verifications-list');
+        const noVerifications = document.getElementById('no-verifications');
+        
+        // Elementos do motorista
+        const uploadButton = document.getElementById('upload-button');
+        const pdfUploadDriver = document.getElementById('pdf-upload-driver');
+        const fileName = document.getElementById('file-name');
+        const scanButton = document.getElementById('scan-button');
+        const stopButton = document.getElementById('stop-button');
+        const scannerView = document.getElementById('scanner-view');
+        const scannerContainer = document.getElementById('scanner-container');
+        const scannerOverlay = document.getElementById('scanner-overlay');
+        const statusMessage = document.getElementById('status-message');
+        const productList = document.getElementById('product-list');
+        const manualCodeInput = document.getElementById('manual-code');
+        const manualSubmitButton = document.getElementById('manual-submit');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const totalItemsElement = document.getElementById('total-items');
+        const verifiedItemsElement = document.getElementById('verified-items');
+        const pendingItemsElement = document.getElementById('pending-items');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+
+        // Novas variáveis para relatório
+        const reportContainer = document.getElementById('report-container');
+        const finalVerified = document.getElementById('final-verified');
+        const finalPending = document.getElementById('final-pending');
+        const finalPercent = document.getElementById('final-percent');
+        const pendingList = document.getElementById('pending-list');
+        const downloadReportBtn = document.getElementById('download-report');
+        const finishRouteBtn = document.getElementById('finish-route');
+
+        // Variáveis de estado do motorista
+        let scannerActive = false;
+        let codeReader;
+        let deliveryData = [];
+        let pdfLoaded = false;
+        let verifiedItems = 0;
+        let totalItems = 0;
+        let canScan = true;
+        let audioContext = null;
+        let currentDriver = null;
+
+        // Botão de finalização
+        const finalizeButton = document.createElement('button');
+        finalizeButton.className = 'btn btn-primary';
+        finalizeButton.style.marginTop = '20px';
+        finalizeButton.innerHTML = '<i class="fas fa-flag-checkered"></i> Finalizar Verificação';
+        finalizeButton.addEventListener('click', showFinalReport);
+        const verificationSection = document.querySelector('.verification-section');
+        verificationSection.appendChild(finalizeButton);
+        finalizeButton.style.display = 'none';
+
+        // Navegação por abas (administrador)
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value;
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
                 
-                // Verificar credenciais (em um sistema real, isso seria feito no servidor)
-                if (authenticateUser(username, password)) {
-                    const user = {
-                        id: Date.now(),
-                        username: username,
-                        loginTime: new Date().toISOString()
-                    };
-                    
-                    // Salvar usuário no localStorage
-                    localStorage.setItem('currentDriver', JSON.stringify(user));
-                    
-                    // Mostrar aplicação
-                    showApp(user);
-                } else {
-                    showStatus("Credenciais inválidas. Tente novamente.", false, loginContainer);
-                }
-            });
-            
-            // Função de autenticação (simulada)
-            function authenticateUser(username, password) {
-                // Credenciais válidas para demonstração
-                const validUsers = [
-                    { username: 'motorista', password: 'senha123' },
-                    { username: 'joao', password: 'entregas123' },
-                    { username: 'maria', password: 'transportadora' }
-                ];
-                
-                return validUsers.some(user => 
-                    user.username === username && user.password === password
-                );
-            }
-            
-            // Logout
-            logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('currentDriver');
-                location.reload();
-            });
-            
-            // Configurar upload de PDF
-            uploadButton.addEventListener('click', () => pdfUpload.click());
-            
-            pdfUpload.addEventListener('change', async function(e) {
-                if (e.target.files.length > 0) {
-                    const file = e.target.files[0];
-                    fileName.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name}`;
-                    
-                    try {
-                        // Processar PDF
-                        deliveryData = await processPDF(file);
-                        totalItems = deliveryData.length;
-                        verifiedItems = 0;
-                        
-                        totalItemsElement.textContent = totalItems;
-                        verifiedItemsElement.textContent = verifiedItems;
-                        pendingItemsElement.textContent = totalItems;
-                        
-                        updateProgressBar();
-                        
-                        // Renderizar lista de produtos
-                        renderProductList();
-                        
-                        // Salvar dados
-                        saveData();
-                        
-                        pdfLoaded = true;
-                        scanButton.disabled = false;
-                        stopButton.disabled = false;
-                        
-                        showStatus(`PDF carregado com sucesso! ${totalItems} itens encontrados.`, true);
-                    } catch (error) {
-                        console.error("Erro ao processar PDF:", error);
-                        showStatus("Erro ao processar o PDF. Verifique o formato do arquivo.", false);
-                    }
-                }
-            });
-            
-            // Configurar botões de scanner
-            scanButton.addEventListener('click', startScanner);
-            stopButton.addEventListener('click', stopScanner);
-            
-            // Configurar verificação manual
-            manualSubmitButton.addEventListener('click', verifyManualCode);
-            manualCodeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') verifyManualCode();
-            });
-            
-            // Inicializar BarcodeDetector se suportado
-            if ('BarcodeDetector' in window) {
-                codeReader = new BarcodeDetector({ 
-                    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_128'] 
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
                 });
-            } else {
-                scanButton.disabled = true;
-                showStatus("Seu navegador não suporta leitura de códigos de barras.", false);
-            }
+                
+                const target = this.getAttribute('data-target');
+                document.getElementById(target).style.display = 'block';
+            });
+        });
+        
+        // Acesso como administrador
+        adminLoginBtn.addEventListener('click', function() {
+            loginContainer.style.display = 'none';
+            adminContainer.style.display = 'block';
+            loadDashboardData();
+            loadDrivers();
+            populateDriverSelect();
+            loadAssignments();
+            loadVerifications();
+        });
+        
+        // Acesso como motorista
+        driverLoginBtn.addEventListener('click', function() {
+            currentDriver = {
+                id: 1,
+                name: "Carlos Silva",
+                username: "carlos"
+            };
             
-            // Função para tocar som personalizado
-            function playSound(type) {
-                if (!audioContext) {
-                    // Inicializar o contexto de áudio se necessário
-                    try {
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    } catch (e) {
-                        console.error("Não foi possível criar o contexto de áudio:", e);
-                        return;
-                    }
-                }
-                
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                if (type === 'success') {
-                    // Som de sucesso (sine, 800 Hz)
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                } else {
-                    // Som de alerta/erro (square, 200 Hz)
-                    oscillator.type = 'square';
-                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                }
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.5);
-            }
+            loginContainer.style.display = 'none';
+            driverContainer.style.display = 'block';
             
-            // Funções principais
-            function startScanner() {
-                if (!pdfLoaded) {
-                    showStatus("Por favor, carregue o PDF primeiro", false);
-                    return;
-                }
-                
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                })
-                .then(function(stream) {
-                    scannerView.srcObject = stream;
-                    
-                    // Iniciar a reprodução do vídeo explicitamente
-                    return scannerView.play();
-                })
-                .then(() => {
-                    scannerActive = true;
-                    scannerOverlay.style.display = 'none';
-                    scanButton.disabled = true;
-                    stopButton.disabled = false;
-                    
-                    detectBarcode();
-                })
-                .catch(function(err) {
-                    console.error("Erro ao acessar a câmera: ", err);
-                    showStatus("Não foi possível acessar a câmera. Verifique as permissões.", false);
-                });
-            }
+            // Atualizar informações do usuário
+            const initials = currentDriver.name.charAt(0).toUpperCase();
+            userAvatar.textContent = initials;
+            userName.textContent = currentDriver.name;
+        });
+        
+        // Logout administrador
+        adminLogoutBtn.addEventListener('click', function() {
+            adminContainer.style.display = 'none';
+            loginContainer.style.display = 'flex';
+        });
+        
+        // Logout motorista
+        driverLogoutBtn.addEventListener('click', function() {
+            driverContainer.style.display = 'none';
+            loginContainer.style.display = 'flex';
+        });
+        
+        // Carregar dados do dashboard (administrador)
+        function loadDashboardData() {
+            const drivers = mockDatabase.drivers;
+            const assignments = mockDatabase.assignments;
             
-            function stopScanner() {
-                if (scannerView.srcObject) {
-                    const tracks = scannerView.srcObject.getTracks();
-                    tracks.forEach(track => track.stop());
-                    scannerView.srcObject = null;
-                }
-                
-                scannerActive = false;
-                scannerOverlay.style.display = 'flex';
-                scanButton.disabled = false;
-                stopButton.disabled = true;
-            }
+            totalDrivers.textContent = drivers.length;
+            activeDrivers.textContent = drivers.filter(d => d.status === 'active').length;
+            assignedRoutes.textContent = assignments.length;
             
-            function detectBarcode() {
-                if (!scannerActive || !canScan) return;
-                
-                codeReader.detect(scannerView)
-                    .then(barcodes => {
-                        if (barcodes.length > 0 && canScan) {
-                            const barcode = barcodes[0].rawValue;
-                            startCooldown();
-                            verifyProduct(barcode);
-                        }
-                        requestAnimationFrame(detectBarcode);
-                    })
-                    .catch(err => {
-                        console.error("Erro na detecção: ", err);
-                        requestAnimationFrame(detectBarcode);
-                    });
-            }
+            const completed = assignments.filter(a => a.status === 'completed').length;
+            const completionRate = assignments.length > 0 
+                ? Math.round((completed / assignments.length) * 100) 
+                : 0;
+            completedRoutes.textContent = `${completionRate}%`;
+        }
+        
+        // Carregar motoristas (administrador)
+        function loadDrivers() {
+            driverGrid.innerHTML = '';
             
-            // Iniciar intervalo de 1 segundo com feedback visual
-            function startCooldown() {
-                canScan = false;
+            mockDatabase.drivers.forEach(driver => {
+                const driverCard = document.createElement('div');
+                driverCard.className = 'driver-card';
                 
-                // Feedback visual - piscar bordas
-                scannerContainer.classList.add('scanner-pulse');
-                
-                setTimeout(() => {
-                    canScan = true;
-                    scannerContainer.classList.remove('scanner-pulse');
-                }, 1000);
-            }
-            
-            function verifyManualCode() {
-                if (!canScan) {
-                    return;
-                }
-                
-                const code = manualCodeInput.value.trim();
-                if (code) {
-                    startCooldown();
-                    verifyProduct(code);
-                    manualCodeInput.value = '';
-                }
-            }
-            
-            function verifyProduct(barcode) {
-                if (!pdfLoaded) {
-                    showStatus("Por favor, carregue o PDF primeiro", false);
-                    return;
-                }
-                
-                // Verificar se o código existe na lista de entregas
-                const foundIndex = deliveryData.findIndex(item => 
-                    item.id === barcode || 
-                    item.number === barcode
-                );
-                
-                if (foundIndex !== -1) {
-                    const foundProduct = deliveryData[foundIndex];
-                    
-                    // Atualizar apenas se ainda não foi verificado
-                    if (!foundProduct.verified) {
-                        foundProduct.verified = true;
-                        verifiedItems++;
-                        verifiedItemsElement.textContent = verifiedItems;
-                        showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
-                        
-                        // Tocar som de sucesso
-                        playSound('success');
-                        
-                        pendingItemsElement.textContent = totalItems - verifiedItems;
-                        updateProgressBar();
-                        
-                        // Atualizar visualização da lista
-                        renderProductList();
-                        saveData();
-                    } else {
-                        showStatus("Produto já verificado anteriormente", true);
-                        
-                        // Tocar som de alerta
-                        playSound('alert');
-                    }
-                    
-                    // Rolagem para o item verificado
-                    const itemElement = document.getElementById(`product-${foundIndex}`);
-                    if (itemElement) {
-                        itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                } else {
-                    showStatus("Produto NÃO encontrado na lista", false);
-                    
-                    // Tocar som de erro
-                    playSound('alert');
-                }
-            }
-            
-            function updateProgressBar() {
-                const percentage = totalItems > 0 ? (verifiedItems / totalItems) * 100 : 0;
-                progressBar.style.width = `${percentage}%`;
-                progressPercent.textContent = `${Math.round(percentage)}%`;
-            }
-            
-            function showStatus(message, type) {
-                statusMessage.textContent = message;
-                
-                if (type === true) {
-                    statusMessage.className = 'status-message status-found';
-                } else if (type === false) {
-                    statusMessage.className = 'status-message status-not-found';
-                }
-                
-                statusMessage.style.display = 'block';
-                
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 3000);
-            }
-            
-            function renderProductList() {
-                if (deliveryData.length === 0) {
-                    productList.innerHTML = `
-                        <li class="empty-list">
-                            <i class="fas fa-clipboard-list"></i>
-                            <h3>Nenhum produto carregado</h3>
-                            <p>Carregue um PDF para ver a lista de produtos</p>
-                        </li>
-                    `;
-                    return;
-                }
-                
-                productList.innerHTML = '';
-                
-                deliveryData.forEach((product, index) => {
-                    const item = document.createElement('li');
-                    
-                    if (product.verified) {
-                        item.className = 'product-item verified';
-                    } else {
-                        item.className = 'product-item';
-                    }
-                    
-                    item.id = `product-${index}`;
-                    
-                    item.innerHTML = `
-                        <div class="item-number">
-                            <span class="status-icon">
-                                ${product.verified ? '<i class="fas fa-check"></i>' : '<i class="fas fa-box"></i>'}
+                driverCard.innerHTML = `
+                    <div class="driver-header">
+                        <div class="driver-avatar">${driver.name.charAt(0)}</div>
+                        <div class="driver-info">
+                            <div class="driver-name">${driver.name}</div>
+                            <div class="driver-id">ID: DRV-${driver.id.toString().padStart(3, '0')}</div>
+                            <span class="driver-status ${driver.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                ${driver.status === 'active' ? 'Ativo' : 'Inativo'}
                             </span>
-                            ${product.number}
                         </div>
-                        <div class="item-id">${product.id}</div>
-                        <div class="status-text">
-                            ${product.verified 
-                                ? '<i class="fas fa-check-circle"></i> Verificado' 
-                                : '<i class="fas fa-clock"></i> Pendente'}
+                    </div>
+                    
+                    <div class="driver-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Região:</span>
+                            <span class="detail-value">${driver.region}</span>
                         </div>
-                    `;
+                        <div class="detail-row">
+                            <span class="detail-label">Veículo:</span>
+                            <span class="detail-value">${driver.vehicle}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Rotas Ativas:</span>
+                            <span class="detail-value">${driver.routes ? driver.routes.length : 0}</span>
+                        </div>
+                    </div>
                     
-                    productList.appendChild(item);
-                });
-            }
-            
-            // Função para processar o PDF e extrair dados
-            async function processPDF(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                const data = [];
-                
-                // Processar cada página do PDF
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const text = textContent.items.map(item => item.str).join(' ');
-                    
-                    // Expressão regular para encontrar linhas com N.º e ID do pacote
-                    const regex = /(\d+[A-Z]*)\s+(\d{10,12})/g;
-                    let match;
-                    
-                    while ((match = regex.exec(text)) !== null) {
-                        const number = match[1];
-                        const id = match[2];
-                        
-                        // Verificar se já existe na lista
-                        if (!data.some(item => item.id === id)) {
-                            data.push({
-                                number: number,
-                                id: id,
-                                verified: false
-                            });
+                    <div class="route-info">
+                        <div class="route-title">
+                            <i class="fas fa-route"></i> 
+                            ${driver.routes && driver.routes.length > 0 
+                                ? 'Última Rota Atribuída' 
+                                : 'Nenhuma rota atribuída'}
+                        </div>
+                        ${driver.routes && driver.routes.length > 0
+                            ? `
+                            <div class="route-file">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>${driver.routes[0].file}</span>
+                            </div>
+                            <div class="file-actions">
+                                <button class="btn btn-icon btn-primary" onclick="editDriverRoute(${driver.id})">
+                                    <i class="fas fa-edit"></i> Alterar
+                                </button>
+                                <button class="btn btn-icon btn-danger" onclick="deleteDriverRoute(${driver.id})">
+                                    <i class="fas fa-trash"></i> Remover
+                                </button>
+                            </div>
+                            `
+                            : `
+                            <div class="file-actions">
+                                <button class="btn btn-icon btn-primary" onclick="assignRouteToDriver(${driver.id})">
+                                    <i class="fas fa-plus"></i> Atribuir Rota
+                                </button>
+                            </div>
+                            `
                         }
-                    }
-                }
+                    </div>
+                `;
                 
-                return data;
+                driverGrid.appendChild(driverCard);
+            });
+            
+            const newDriverCard = document.createElement('div');
+            newDriverCard.className = 'driver-card';
+            newDriverCard.style.border = '2px dashed #8e44ad';
+            newDriverCard.style.backgroundColor = '#f9f0ff';
+            newDriverCard.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fas fa-user-plus" style="font-size: 3rem; color: #8e44ad; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 15px; color: #8e44ad;">Adicionar Novo Motorista</h3>
+                    <p style="color: #777; margin-bottom: 20px;">Clique no botão abaixo para cadastrar um novo motorista no sistema</p>
+                    <button class="btn btn-primary" onclick="addNewDriver()">
+                        <i class="fas fa-plus"></i> Cadastrar Motorista
+                    </button>
+                </div>
+            `;
+            driverGrid.appendChild(newDriverCard);
+        }
+        
+        // Popular dropdown de motoristas (administrador)
+        function populateDriverSelect() {
+            driverSelect.innerHTML = '<option value="">Selecione um motorista</option>';
+            
+            mockDatabase.drivers.forEach(driver => {
+                if (driver.status === 'active') {
+                    const option = document.createElement('option');
+                    option.value = driver.id;
+                    option.textContent = `${driver.name} (${driver.region})`;
+                    driverSelect.appendChild(option);
+                }
+            });
+        }
+        
+        // Atribuir rota a motorista (administrador)
+        assignRouteBtn.addEventListener('click', function() {
+            const driverId = driverSelect.value;
+            const routeName = routeNameInput.value.trim();
+            const notes = routeNotesInput.value.trim();
+            
+            if (!driverId) {
+                alert('Selecione um motorista');
+                return;
             }
             
-            // Funções para gerenciar dados
-            function saveData() {
-                localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
-                localStorage.setItem('verifiedItems', verifiedItems.toString());
+            if (!routeName) {
+                alert('Digite o nome da rota');
+                return;
             }
             
-            function loadData() {
-                const savedData = localStorage.getItem('deliveryData');
-                if (savedData) {
-                    deliveryData = JSON.parse(savedData);
+            const newRoute = {
+                id: mockDatabase.routes.length + 1,
+                name: routeName,
+                file: 'novo_arquivo.pdf',
+                notes: notes
+            };
+            
+            mockDatabase.routes.push(newRoute);
+            
+            const newAssignment = {
+                id: mockDatabase.assignments.length + 1,
+                driverId: parseInt(driverId),
+                routeId: newRoute.id,
+                date: new Date().toISOString().split('T')[0],
+                status: 'active'
+            };
+            
+            mockDatabase.assignments.push(newAssignment);
+            
+            const driver = mockDatabase.drivers.find(d => d.id === parseInt(driverId));
+            if (driver) {
+                if (!driver.routes) driver.routes = [];
+                driver.routes.push(newRoute);
+            }
+            
+            alert('Rota atribuída com sucesso!');
+            loadDrivers();
+            loadDashboardData();
+            loadAssignments();
+            
+            // Resetar formulário
+            driverSelect.value = '';
+            routeNameInput.value = '';
+            routeNotesInput.value = '';
+            filePreview.style.display = 'none';
+        });
+        
+        // Carregar atribuições de rotas (administrador)
+        function loadAssignments() {
+            assignmentsTableBody.innerHTML = '';
+            
+            mockDatabase.assignments.forEach(assignment => {
+                const driver = mockDatabase.drivers.find(d => d.id === assignment.driverId);
+                const route = mockDatabase.routes.find(r => r.id === assignment.routeId);
+                
+                if (!driver || !route) return;
+                
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #eee';
+                row.innerHTML = `
+                    <td style="padding: 15px;">${driver.name}</td>
+                    <td style="padding: 15px;">${route.name}</td>
+                    <td style="padding: 15px;">
+                        <i class="fas fa-file-pdf" style="color: #e74c3c;"></i> ${route.file}
+                    </td>
+                    <td style="padding: 15px;">${assignment.date}</td>
+                    <td style="padding: 15px;">
+                        <span style="background: ${getStatusColor(assignment.status).bg}; 
+                              color: ${getStatusColor(assignment.status).text}; 
+                              padding: 5px 10px; 
+                              border-radius: 15px; 
+                              font-size: 0.8rem;">
+                            ${getStatusText(assignment.status)}
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <button class="btn btn-sm" style="padding: 5px 10px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm" style="padding: 5px 10px;">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                `;
+                assignmentsTableBody.appendChild(row);
+            });
+        }
+        
+        // Carregar verificações (administrador)
+        function loadVerifications() {
+            const verifications = mockDatabase.verifications;
+            
+            if (verifications.length === 0) {
+                noVerifications.style.display = 'block';
+                verificationsList.innerHTML = '';
+                return;
+            }
+            
+            noVerifications.style.display = 'none';
+            verificationsList.innerHTML = '';
+            
+            verifications.forEach(verification => {
+                const row = document.createElement('tr');
+                
+                // Formatar a data
+                const date = new Date(verification.timestamp);
+                const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+                
+                row.innerHTML = `
+                    <td>${verification.driver}</td>
+                    <td>${verification.productNumber}</td>
+                    <td>${verification.productId}</td>
+                    <td>${formattedDate}</td>
+                    <td class="verified">Verificado</td>
+                `;
+                
+                verificationsList.appendChild(row);
+            });
+        }
+        
+        // Helper para status
+        function getStatusText(status) {
+            switch(status) {
+                case 'active': return 'Ativa';
+                case 'completed': return 'Concluída';
+                case 'in_progress': return 'Em andamento';
+                default: return status;
+            }
+        }
+        
+        function getStatusColor(status) {
+            switch(status) {
+                case 'active': return { bg: '#d4edda', text: '#155724' };
+                case 'completed': return { bg: '#28a745', text: 'white' };
+                case 'in_progress': return { bg: '#ffc107', text: '#333' };
+                default: return { bg: '#ddd', text: '#333' };
+            }
+        }
+        
+        // Funções para ações do administrador
+        window.addNewDriver = function() {
+            const newDriver = {
+                id: mockDatabase.drivers.length + 1,
+                name: `Novo Motorista ${mockDatabase.drivers.length + 1}`,
+                region: "Nova Região",
+                vehicle: "Novo Veículo",
+                status: "active",
+                routes: []
+            };
+            
+            mockDatabase.drivers.push(newDriver);
+            loadDrivers();
+            populateDriverSelect();
+            loadDashboardData();
+        };
+        
+        window.editDriverRoute = function(driverId) {
+            alert(`Editar rota do motorista ${driverId} - Esta ação acionaria o backend para atualizar os dados`);
+        };
+        
+        window.deleteDriverRoute = function(driverId) {
+            if (confirm('Tem certeza que deseja remover esta rota do motorista?')) {
+                const driver = mockDatabase.drivers.find(d => d.id === driverId);
+                if (driver && driver.routes.length > 0) {
+                    driver.routes = [];
+                }
+                loadDrivers();
+                loadDashboardData();
+            }
+        };
+        
+        window.assignRouteToDriver = function(driverId) {
+            driverSelect.value = driverId;
+            document.querySelector('[data-target="routes"]').click();
+        };
+        
+        // Upload de arquivo com drag and drop (administrador)
+        fileDropArea.addEventListener('click', () => pdfUpload.click());
+        
+        pdfUpload.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                showFilePreview(file);
+            }
+        });
+        
+        // Drag and drop (administrador)
+        fileDropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        fileDropArea.addEventListener('dragleave', function() {
+            this.classList.remove('dragover');
+        });
+        
+        fileDropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                const file = e.dataTransfer.files[0];
+                if (file.type === 'application/pdf') {
+                    showFilePreview(file);
+                } else {
+                    alert('Por favor, selecione um arquivo PDF.');
+                }
+            }
+        });
+        
+        // Remover arquivo (administrador)
+        removeFileBtn.addEventListener('click', function() {
+            pdfUpload.value = '';
+            filePreview.style.display = 'none';
+        });
+        
+        // Mostrar preview do arquivo (administrador)
+        function showFilePreview(file) {
+            if (file.type !== 'application/pdf') {
+                alert('Por favor, selecione um arquivo PDF.');
+                return;
+            }
+            
+            previewFileName.textContent = file.name;
+            const fileSize = (file.size / (1024*1024)).toFixed(2);
+            document.getElementById('preview-file-size').textContent = `(${fileSize} MB)`;
+            filePreview.style.display = 'block';
+        }
+        
+        // Configurações do motorista
+        uploadButton.addEventListener('click', () => pdfUploadDriver.click());
+        
+        pdfUploadDriver.addEventListener('change', async function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileName.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name}`;
+                
+                try {
+                    deliveryData = await processPDF(file);
                     totalItems = deliveryData.length;
-                    
-                    verifiedItems = parseInt(localStorage.getItem('verifiedItems') || '0');
+                    verifiedItems = 0;
                     
                     totalItemsElement.textContent = totalItems;
                     verifiedItemsElement.textContent = verifiedItems;
-                    pendingItemsElement.textContent = totalItems - verifiedItems;
+                    pendingItemsElement.textContent = totalItems;
                     
                     updateProgressBar();
                     renderProductList();
+                    
                     pdfLoaded = true;
                     scanButton.disabled = false;
                     stopButton.disabled = false;
+                    finalizeButton.style.display = 'block';
+                    
+                    showStatus(`PDF carregado com sucesso! ${totalItems} itens encontrados.`, true);
+                } catch (error) {
+                    console.error("Erro ao processar PDF:", error);
+                    showStatus("Erro ao processar o PDF. Verifique o formato do arquivo.", false);
+                }
+            }
+        });
+        
+        // Configurar botões de scanner (motorista)
+        scanButton.addEventListener('click', startScanner);
+        stopButton.addEventListener('click', stopScanner);
+        
+        // Configurar verificação manual (motorista)
+        manualSubmitButton.addEventListener('click', verifyManualCode);
+        manualCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyManualCode();
+        });
+        
+        // Inicializar BarcodeDetector se suportado (motorista)
+        if ('BarcodeDetector' in window) {
+            codeReader = new BarcodeDetector({ 
+                formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_128'] 
+            });
+        } else {
+            scanButton.disabled = true;
+            showStatus("Seu navegador não suporta leitura de códigos de barras.", false);
+        }
+        
+        // Event Listeners do relatório
+        finishRouteBtn.addEventListener('click', function() {
+            alert('Rota finalizada com sucesso! Relatório enviado para o servidor.');
+            // Resetar estado para nova rota
+            location.reload();
+        });
+        
+        downloadReportBtn.addEventListener('click', generatePDFReport);
+
+        // Funções do motorista
+        function startScanner() {
+            if (!pdfLoaded) {
+                showStatus("Por favor, carregue o PDF primeiro", false);
+                return;
+            }
+            
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            })
+            .then(function(stream) {
+                scannerView.srcObject = stream;
+                return scannerView.play();
+            })
+            .then(() => {
+                scannerActive = true;
+                scannerOverlay.style.display = 'none';
+                scanButton.disabled = true;
+                stopButton.disabled = false;
+                detectBarcode();
+            })
+            .catch(function(err) {
+                console.error("Erro ao acessar a câmera: ", err);
+                showStatus("Não foi possível acessar a câmera. Verifique as permissões.", false);
+            });
+        }
+        
+        function stopScanner() {
+            if (scannerView.srcObject) {
+                const tracks = scannerView.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                scannerView.srcObject = null;
+            }
+            
+            scannerActive = false;
+            scannerOverlay.style.display = 'flex';
+            scanButton.disabled = false;
+            stopButton.disabled = true;
+        }
+        
+        function detectBarcode() {
+            if (!scannerActive || !canScan) return;
+            
+            codeReader.detect(scannerView)
+                .then(barcodes => {
+                    if (barcodes.length > 0 && canScan) {
+                        const barcode = barcodes[0].rawValue;
+                        verifyProduct(barcode);
+                    }
+                    requestAnimationFrame(detectBarcode);
+                })
+                .catch(err => {
+                    console.error("Erro na detecção: ", err);
+                    requestAnimationFrame(detectBarcode);
+                });
+        }
+        
+        function verifyManualCode() {
+            if (!canScan) {
+                return;
+            }
+            
+            const code = manualCodeInput.value.trim();
+            if (code) {
+                verifyProduct(code);
+                manualCodeInput.value = '';
+            }
+        }
+        
+        function verifyProduct(barcode) {
+            if (!pdfLoaded) {
+                showStatus("Por favor, carregue o PDF primeiro", false);
+                return;
+            }
+            
+            const foundIndex = deliveryData.findIndex(item => 
+                item.id === barcode || 
+                item.number === barcode
+            );
+            
+            if (foundIndex !== -1) {
+                const foundProduct = deliveryData[foundIndex];
+                
+                if (!foundProduct.verified) {
+                    foundProduct.verified = true;
+                    verifiedItems++;
+                    verifiedItemsElement.textContent = verifiedItems;
+                    showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
+                    
+                    // Registrar verificação para o painel administrativo
+                    const verificationRecord = {
+                        driver: currentDriver.name,
+                        productId: foundProduct.id,
+                        productNumber: foundProduct.number,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    mockDatabase.verifications.push(verificationRecord);
+                    
+                    pendingItemsElement.textContent = totalItems - verifiedItems;
+                    updateProgressBar();
+                    renderProductList();
+                } else {
+                    showStatus("Produto já verificado anteriormente", true);
+                }
+                
+                const itemElement = document.getElementById(`product-${foundIndex}`);
+                if (itemElement) {
+                    itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                showStatus("Produto NÃO encontrado na lista", false);
+            }
+        }
+        
+        function updateProgressBar() {
+            const percentage = totalItems > 0 ? (verifiedItems / totalItems) * 100 : 0;
+            progressBar.style.width = `${percentage}%`;
+            progressPercent.textContent = `${Math.round(percentage)}%`;
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            
+            if (type === true) {
+                statusMessage.className = 'status-message status-found';
+            } else if (type === false) {
+                statusMessage.className = 'status-message status-not-found';
+            }
+            
+            statusMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+        
+        function renderProductList() {
+            if (deliveryData.length === 0) {
+                productList.innerHTML = `
+                    <li class="empty-list">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>Nenhum produto carregado</h3>
+                        <p>Carregue um PDF para ver a lista de produtos</p>
+                    </li>
+                `;
+                return;
+            }
+            
+            productList.innerHTML = '';
+            
+            deliveryData.forEach((product, index) => {
+                const item = document.createElement('li');
+                
+                if (product.verified) {
+                    item.className = 'product-item verified';
+                } else {
+                    item.className = 'product-item';
+                }
+                
+                item.id = `product-${index}`;
+                
+                item.innerHTML = `
+                    <div class="item-number">
+                        <span class="status-icon">
+                            ${product.verified ? '<i class="fas fa-check"></i>' : '<i class="fas fa-box"></i>'}
+                        </span>
+                        ${product.number}
+                    </div>
+                    <div class="item-id">${product.id}</div>
+                    <div class="status-text">
+                        ${product.verified 
+                            ? '<i class="fas fa-check-circle"></i> Verificado' 
+                            : '<i class="fas fa-clock"></i> Pendente'}
+                    </div>
+                `;
+                
+                productList.appendChild(item);
+            });
+        }
+        
+        // Função para processar o PDF e extrair dados (motorista)
+        async function processPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const data = [];
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(' ');
+                
+                const regex = /(\d+[A-Z]*)\s+(\d{10,12})/g;
+                let match;
+                
+                while ((match = regex.exec(text)) !== null) {
+                    const number = match[1];
+                    const id = match[2];
+                    
+                    if (!data.some(item => item.id === id)) {
+                        data.push({
+                            number: number,
+                            id: id,
+                            verified: false
+                        });
+                    }
                 }
             }
             
-            // Verificar login ao carregar a página
-            checkLogin();
-        });
+            return data;
+        }
+        
+        // Função para mostrar o relatório
+        function showFinalReport() {
+            // Esconder outras seções
+            document.querySelector('.verification-section').style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'none';
+            document.querySelector('.stats-container').style.display = 'none';
+            
+            // Atualizar dados do relatório
+            const pending = totalItems - verifiedItems;
+            const percent = Math.round((verifiedItems / totalItems) * 100);
+            
+            finalVerified.textContent = verifiedItems;
+            finalPending.textContent = pending;
+            finalPercent.textContent = `${percent}%`;
+            
+            // Listar itens pendentes
+            if (pending > 0) {
+                pendingList.innerHTML = '';
+                deliveryData.forEach(item => {
+                    if (!item.verified) {
+                        const div = document.createElement('div');
+                        div.className = 'pending-item';
+                        div.innerHTML = `
+                            <span>${item.number}</span>
+                            <span>${item.id}</span>
+                        `;
+                        pendingList.appendChild(div);
+                    }
+                });
+            } else {
+                pendingList.innerHTML = '<p>Todos os itens foram verificados com sucesso!</p>';
+            }
+            
+            // Mostrar relatório
+            reportContainer.style.display = 'block';
+            
+            // Registrar o relatório no banco de dados simulado
+            mockDatabase.reports.push({
+                driverId: currentDriver.id,
+                driverName: currentDriver.name,
+                date: new Date().toISOString(),
+                totalItems: totalItems,
+                verifiedItems: verifiedItems,
+                pendingItems: pending,
+                successRate: percent
+            });
+        }
+
+        // Gerar PDF do relatório
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Cabeçalho
+            doc.setFontSize(18);
+            doc.text('Relatório de Verificação de Entregas', 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Motorista: ${currentDriver.name}`, 20, 30);
+            doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, 38);
+            
+            // Dados principais
+            doc.setFontSize(14);
+            doc.text('Resumo da Verificação', 20, 50);
+            
+            doc.setFontSize(12);
+            doc.text(`Total de Itens: ${totalItems}`, 30, 60);
+            doc.setTextColor(40, 167, 69);
+            doc.text(`Itens Verificados: ${verifiedItems}`, 30, 68);
+            doc.setTextColor(220, 53, 69);
+            doc.text(`Itens Pendentes: ${totalItems - verifiedItems}`, 30, 76);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Taxa de Sucesso: ${Math.round((verifiedItems / totalItems) * 100)}%`, 30, 84);
+            
+            // Lista de pendentes
+            if (totalItems - verifiedItems > 0) {
+                doc.setFontSize(14);
+                doc.text('Itens Não Verificados:', 20, 100);
+                doc.setFontSize(10);
+                
+                let y = 110;
+                deliveryData.forEach(item => {
+                    if (!item.verified) {
+                        doc.text(`• ${item.number} - ${item.id}`, 25, y);
+                        y += 7;
+                    }
+                });
+            }
+            
+            // Rodapé
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Gerado pelo Sistema Logística Express', 20, doc.internal.pageSize.height - 10);
+            
+            // Salvar PDF
+            doc.save(`relatorio-${currentDriver.name.replace(' ', '-')}-${new Date().toISOString().slice(0,10)}.pdf`);
+        }
     </script>
 </body>
 </html>
