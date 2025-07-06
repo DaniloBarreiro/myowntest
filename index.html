@@ -27,8 +27,6 @@
             --dark: #34495e;
             --text: #333;
             --background: #f8f9fa;
-            --offline: #e74c3c;
-            --online: #2ecc71;
         }
         
         body {
@@ -38,7 +36,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
         
         .container {
@@ -48,7 +46,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            margin: 20px auto;
+            margin: 15px auto;
             transition: all 0.3s ease;
         }
         
@@ -58,56 +56,57 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
-            min-height: 600px;
+            padding: 30px 15px;
+            min-height: 100vh;
         }
         
         .login-form {
             background: white;
             border-radius: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            padding: 40px;
+            padding: 30px 20px;
             width: 100%;
             max-width: 500px;
             text-align: center;
         }
         
         .login-logo {
-            font-size: 4rem;
+            font-size: 3.5rem;
             color: var(--secondary);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .login-title {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 10px;
             color: var(--primary);
         }
         
         .login-subtitle {
             color: #777;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
+            margin-bottom: 25px;
+            font-size: 1rem;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: left;
         }
         
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 500;
             color: var(--dark);
+            font-size: 0.95rem;
         }
         
         .form-control {
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.3s;
         }
         
@@ -118,7 +117,7 @@
         }
         
         .btn {
-            padding: 14px;
+            padding: 12px;
             border: none;
             border-radius: 8px;
             font-weight: bold;
@@ -126,9 +125,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s;
-            font-size: 1rem;
+            font-size: 0.95rem;
             width: 100%;
         }
         
@@ -139,8 +138,7 @@
         
         .btn-primary:hover {
             background: #2980b9;
-            transform: translateY(-3px);
-            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
         }
         
         /* Aplicação Principal (após login) */
@@ -151,7 +149,7 @@
         header {
             background: var(--primary);
             color: white;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -161,12 +159,12 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--secondary);
             display: flex;
@@ -174,6 +172,7 @@
             justify-content: center;
             color: white;
             font-weight: bold;
+            font-size: 0.9rem;
         }
         
         .logout-btn {
@@ -184,138 +183,100 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 0.3s ease;
-        }
-        
-        .connection-status i {
-            font-size: 1.2rem;
-        }
-        
-        .connection-status.online {
-            background: rgba(46, 204, 113, 0.3);
-        }
-        
-        .connection-status.offline {
-            background: rgba(231, 76, 60, 0.3);
+            font-size: 0.85rem;
         }
         
         .upload-section {
-            padding: 25px;
+            padding: 20px;
             border-bottom: 1px solid #eee;
         }
         
         .file-input {
             display: flex;
-            gap: 15px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
         }
         
         .file-input button {
             background: var(--secondary);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.3s;
-            font-size: 1rem;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 140px;
         }
         
         .file-input button:hover {
             background: #2980b9;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .file-name {
             background: var(--background);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             border: 1px dashed #ddd;
-            margin-top: 15px;
-            font-size: 1rem;
+            margin-top: 12px;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            padding: 15px;
             background: var(--background);
             border-bottom: 1px solid #eee;
         }
         
         .stat-card {
             background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
             text-align: center;
             border-left: 4px solid var(--secondary);
         }
         
         .stat-card h3 {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             color: var(--secondary);
             margin-bottom: 5px;
         }
         
         .stat-card p {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: #777;
         }
         
-        .offline-notice {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-        }
-        
         .progress-container {
-            padding: 20px;
+            padding: 15px;
             background: white;
         }
         
         .progress-text {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 1rem;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
             font-weight: 500;
         }
         
         .progress-bar {
-            height: 24px;
+            height: 20px;
             background: var(--light);
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             position: relative;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
@@ -324,16 +285,16 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--success), #1abc9c);
-            border-radius: 12px;
+            border-radius: 10px;
             transition: width 0.5s ease;
             width: 0%;
         }
         
         .verification-section {
-            padding: 20px;
+            padding: 15px;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 30px;
+            gap: 20px;
         }
         
         @media (min-width: 992px) {
@@ -344,7 +305,9 @@
         
         .scanner-container {
             position: relative;
-            height: 300px;
+            min-height: 300px;
+            height: 50vh; /* Altura responsiva baseada na tela */
+            max-height: 450px;
             background: var(--primary);
             border-radius: 12px;
             overflow: hidden;
@@ -352,15 +315,15 @@
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         
         #scanner-view {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background: #000; /* Cor de fundo caso o vídeo falhe */
-            transform: scaleX(-1); /* Espelhar a imagem como uma câmera frontal */
+            background: #000;
+            transform: scaleX(-1);
         }
         
         .scanner-overlay {
@@ -376,24 +339,26 @@
             background: rgba(0, 0, 0, 0.4);
             padding: 20px;
             text-align: center;
+            box-sizing: border-box;
         }
         
         .scanner-overlay i {
-            font-size: 4rem;
+            font-size: 3.5rem;
             margin-bottom: 15px;
             color: rgba(255,255,255,0.8);
         }
         
         .scanner-overlay p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             max-width: 300px;
+            line-height: 1.4;
         }
         
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
+            margin-top: 15px;
         }
         
         .btn-danger {
@@ -421,40 +386,42 @@
         .manual-input-container {
             background: white;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         
         .manual-input {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
         
         .manual-input label {
             font-weight: 500;
-            font-size: 1.1rem;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .manual-input label i {
             color: var(--secondary);
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
         
         .input-group {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         .input-group input {
             flex: 1;
-            padding: 15px;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            min-width: 150px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: all 0.3s;
         }
@@ -470,29 +437,27 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 0 25px;
+            padding: 0 20px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 1rem;
-            min-width: 120px;
+            font-size: 0.95rem;
+            min-width: 100px;
         }
         
         .input-group button:hover {
             background: #8e44ad;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .product-list-container {
-            margin-top: 30px;
+            margin-top: 25px;
             grid-column: 1 / -1;
         }
         
         .product-list-header {
             display: grid;
-            grid-template-columns: 100px 1fr 150px;
-            padding: 15px 20px;
+            grid-template-columns: 80px 1fr 120px;
+            padding: 12px 15px;
             background: var(--primary);
             color: white;
             border-radius: 8px 8px 0 0;
@@ -500,24 +465,26 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            font-size: 0.9rem;
         }
         
         .product-list {
             list-style: none;
-            max-height: 400px;
+            max-height: 350px;
             overflow-y: auto;
             border: 1px solid #eee;
             border-top: none;
             border-radius: 0 0 8px 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         
         .product-item {
             display: grid;
-            grid-template-columns: 100px 1fr 150px;
-            padding: 15px 20px;
+            grid-template-columns: 80px 1fr 120px;
+            padding: 12px 15px;
             border-bottom: 1px solid #f5f5f5;
             transition: background 0.3s;
+            font-size: 0.9rem;
         }
         
         .product-item:nth-child(even) {
@@ -532,41 +499,34 @@
             background: #f0fff4;
         }
         
-        .product-item.offline-verified {
-            background: #fef9e7;
-        }
-        
         .product-item.verified .item-number {
             color: var(--success);
-        }
-        
-        .product-item.offline-verified .item-number {
-            color: var(--warning);
         }
         
         .item-number {
             font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
+            gap: 8px;
         }
         
         .item-id {
             font-family: monospace;
-            font-size: 1rem;
             display: flex;
             align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .status-icon {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             background: var(--light);
+            font-size: 0.8rem;
         }
         
         .verified .status-icon {
@@ -574,27 +534,24 @@
             color: white;
         }
         
-        .offline-verified .status-icon {
-            background: var(--warning);
-            color: white;
-        }
-        
         .status-text {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 500;
+            font-size: 0.85rem;
         }
         
         .status-message {
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
-            margin: 15px 0;
+            margin: 12px 0;
             text-align: center;
             font-weight: bold;
             display: none;
             animation: fadeIn 0.3s ease;
             grid-column: 1 / -1;
+            font-size: 0.95rem;
         }
         
         .status-found {
@@ -609,37 +566,52 @@
             border: 1px solid #f5c6cb;
         }
         
-        .status-offline {
-            background: #fef9e7;
-            color: #7d6608;
-            border: 1px solid #f7dc6f;
-        }
-        
         footer {
             background: var(--light);
             text-align: center;
-            padding: 20px;
-            font-size: 0.9rem;
+            padding: 15px;
+            font-size: 0.8rem;
             color: #7f8c8d;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
         .empty-list {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #777;
             grid-column: 1 / -1;
         }
         
         .empty-list i {
-            font-size: 4rem;
-            margin-bottom: 20px;
+            font-size: 3.5rem;
+            margin-bottom: 15px;
             color: #bdc3c7;
         }
         
         .empty-list h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        
+        .empty-list p {
+            font-size: 0.9rem;
+        }
+        
+        .backend-preview {
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .backend-preview h4 {
+            margin-bottom: 8px;
+            color: #1e5799;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
         }
         
         @keyframes fadeIn {
@@ -647,41 +619,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Responsividade */
+        /* Responsividade para dispositivos móveis */
         @media (max-width: 768px) {
-            .product-list-header,
-            .product-item {
-                grid-template-columns: 80px 1fr 120px;
+            .login-container {
+                padding: 20px 10px;
+            }
+            
+            .login-form {
+                padding: 25px 15px;
+            }
+            
+            .login-logo {
+                font-size: 3rem;
+            }
+            
+            .login-title {
+                font-size: 1.6rem;
+            }
+            
+            .scanner-container {
+                height: 40vh;
+                max-height: 350px;
+            }
+            
+            .scanner-overlay i {
+                font-size: 3rem;
+            }
+            
+            .scanner-overlay p {
+                font-size: 1rem;
             }
             
             .controls {
                 grid-template-columns: 1fr;
             }
             
-            .file-input {
-                flex-direction: column;
-            }
-            
-            .file-input button {
-                width: 100%;
-            }
-            
-            .login-form {
-                padding: 30px 20px;
-            }
-            
-            .connection-status {
-                position: relative;
-                top: 0;
-                left: 0;
-                transform: none;
-                margin-top: 10px;
-                justify-content: center;
-                width: 100%;
-            }
-            
-            header {
-                flex-wrap: wrap;
+            .product-list-header,
+            .product-item {
+                grid-template-columns: 70px 1fr 100px;
+                font-size: 0.85rem;
             }
         }
         
@@ -692,11 +668,16 @@
             
             .container {
                 margin: 10px auto;
+                border-radius: 12px;
+            }
+            
+            .scanner-container {
+                height: 35vh;
             }
             
             .product-list-header,
             .product-item {
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: 60px 1fr;
             }
             
             .product-list-header div:nth-child(3),
@@ -705,11 +686,32 @@
             }
             
             .login-title {
-                font-size: 1.7rem;
+                font-size: 1.5rem;
             }
             
+            .file-input button {
+                width: 100%;
+            }
+            
+            .input-group button {
+                width: 100%;
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 400px) {
             .scanner-overlay p {
-                font-size: 1rem;
+                font-size: 0.9rem;
+                padding: 0 10px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .backend-preview {
+                margin: 10px;
+                padding: 10px;
             }
         }
     </style>
@@ -740,7 +742,7 @@
                         <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
                     </button>
                     
-                    <div class="demo-credentials" style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; font-size: 0.9rem;">
+                    <div class="demo-credentials" style="margin-top: 20px; padding: 12px; background: #f9f9f9; border-radius: 8px; font-size: 0.85rem;">
                         <p><strong>Credenciais de Demonstração:</strong></p>
                         <p>Usuário: <strong>motorista</strong></p>
                         <p>Senha: <strong>senha123</strong></p>
@@ -752,21 +754,22 @@
         <!-- Aplicação Principal (após login) -->
         <div class="app-container" id="app-container">
             <header>
-                <h1><i class="fas fa-truck-loading"></i> Sistema de Verificação de Entregas</h1>
+                <h1 style="font-size: 1.2rem;"><i class="fas fa-truck-loading"></i> Sistema de Verificação de Entregas</h1>
                 <div class="user-info">
                     <div class="user-avatar" id="user-avatar">M</div>
                     <div>
-                        <div id="user-name">Motorista</div>
+                        <div id="user-name" style="font-size: 0.9rem;">Motorista</div>
                         <button class="logout-btn" id="logout-btn">
                             <i class="fas fa-sign-out-alt"></i> Sair
                         </button>
                     </div>
                 </div>
-                <div class="connection-status" id="connection-status">
-                    <i class="fas fa-wifi"></i>
-                    <span id="connection-text">Online</span>
-                </div>
             </header>
+            
+            <div class="backend-preview">
+                <h4><i class="fas fa-server"></i> Preparado para integração com PostgreSQL</h4>
+                <p>Esta versão online será integrada com um backend PostgreSQL em breve. Os dados atuais são armazenados localmente para demonstração.</p>
+            </div>
             
             <div class="upload-section">
                 <h2><i class="fas fa-file-pdf"></i> Carregar Roteiro de Entregas</h2>
@@ -775,16 +778,9 @@
                     <button id="upload-button">
                         <i class="fas fa-upload"></i> Selecionar PDF
                     </button>
-                    <button id="sync-button" class="btn-warning" disabled>
-                        <i class="fas fa-sync-alt"></i> Sincronizar
-                    </button>
                 </div>
                 <div id="file-name" class="file-name">
                     <i class="fas fa-file"></i> Nenhum arquivo selecionado
-                </div>
-                <div id="offline-notice" class="offline-notice" style="display: none;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Você está offline. As verificações serão salvas localmente e sincronizadas quando a conexão for restabelecida.</span>
                 </div>
             </div>
             
@@ -800,10 +796,6 @@
                 <div class="stat-card">
                     <h3 id="pending-items">0</h3>
                     <p>Itens Pendentes</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="offline-verified">0</h3>
-                    <p>Verificações Offline</p>
                 </div>
             </div>
             
@@ -845,7 +837,7 @@
                         <p>Digite o código do pacote para verificação</p>
                         
                         <div class="input-group">
-                            <input type="text" id="manual-code" placeholder="ID do pacote ou número do item">
+                            <input type="text" id="manual-code" placeholder="ID do pacote ou número">
                             <button id="manual-submit">
                                 <i class="fas fa-check"></i> Verificar
                             </button>
@@ -856,7 +848,7 @@
                 <div id="status-message" class="status-message"></div>
                 
                 <div class="product-list-container">
-                    <h2><i class="fas fa-list"></i> Lista Completa de Produtos</h2>
+                    <h2><i class="fas fa-list"></i> Lista de Produtos</h2>
                     
                     <div class="product-list-header">
                         <div>N.º</div>
@@ -875,7 +867,7 @@
             </div>
             
             <footer>
-                <p>Sistema de Verificação de Entregas &copy; 2023 | Funciona em dispositivos móveis e desktop</p>
+                <p>Sistema de Verificação de Entregas &copy; 2023 | Versão mobile-otimizada</p>
             </footer>
         </div>
     </div>
@@ -891,10 +883,6 @@
             const logoutBtn = document.getElementById('logout-btn');
             const userAvatar = document.getElementById('user-avatar');
             const userName = document.getElementById('user-name');
-            const connectionStatus = document.getElementById('connection-status');
-            const connectionText = document.getElementById('connection-text');
-            const offlineNotice = document.getElementById('offline-notice');
-            const syncButton = document.getElementById('sync-button');
             
             const uploadButton = document.getElementById('upload-button');
             const pdfUpload = document.getElementById('pdf-upload');
@@ -912,7 +900,6 @@
             const totalItemsElement = document.getElementById('total-items');
             const verifiedItemsElement = document.getElementById('verified-items');
             const pendingItemsElement = document.getElementById('pending-items');
-            const offlineVerifiedElement = document.getElementById('offline-verified');
             
             // Variáveis de estado
             let scannerActive = false;
@@ -920,17 +907,14 @@
             let deliveryData = [];
             let pdfLoaded = false;
             let verifiedItems = 0;
-            let offlineVerifiedItems = 0;
             let totalItems = 0;
-            let isOnline = true;
-            let offlineQueue = [];
-            
+
             // Verificar se o usuário já está logado
             function checkLogin() {
                 const user = localStorage.getItem('currentDriver');
                 if (user) {
                     showApp(JSON.parse(user));
-                    loadOfflineData();
+                    loadData();
                 }
             }
             
@@ -943,9 +927,6 @@
                 const initials = user.username.charAt(0).toUpperCase();
                 userAvatar.textContent = initials;
                 userName.textContent = user.username;
-                
-                // Verificar status da conexão
-                updateConnectionStatus();
             }
             
             // Processar login
@@ -993,27 +974,6 @@
                 location.reload();
             });
             
-            // Atualizar status de conexão
-            function updateConnectionStatus() {
-                isOnline = navigator.onLine;
-                
-                if (isOnline) {
-                    connectionStatus.className = 'connection-status online';
-                    connectionText.innerHTML = '<i class="fas fa-wifi"></i> Online';
-                    offlineNotice.style.display = 'none';
-                    syncButton.disabled = offlineQueue.length === 0;
-                } else {
-                    connectionStatus.className = 'connection-status offline';
-                    connectionText.innerHTML = '<i class="fas fa-wifi-slash"></i> Offline';
-                    offlineNotice.style.display = 'flex';
-                    syncButton.disabled = true;
-                }
-            }
-            
-            // Configurar eventos de conexão
-            window.addEventListener('online', updateConnectionStatus);
-            window.addEventListener('offline', updateConnectionStatus);
-            
             // Configurar upload de PDF
             uploadButton.addEventListener('click', () => pdfUpload.click());
             
@@ -1027,20 +987,18 @@
                         deliveryData = await processPDF(file);
                         totalItems = deliveryData.length;
                         verifiedItems = 0;
-                        offlineVerifiedItems = 0;
                         
                         totalItemsElement.textContent = totalItems;
                         verifiedItemsElement.textContent = verifiedItems;
                         pendingItemsElement.textContent = totalItems;
-                        offlineVerifiedElement.textContent = offlineVerifiedItems;
                         
                         updateProgressBar();
                         
                         // Renderizar lista de produtos
                         renderProductList();
                         
-                        // Salvar dados offline
-                        saveOfflineData();
+                        // Salvar dados
+                        saveData();
                         
                         pdfLoaded = true;
                         scanButton.disabled = false;
@@ -1063,9 +1021,6 @@
             manualCodeInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') verifyManualCode();
             });
-            
-            // Configurar botão de sincronização
-            syncButton.addEventListener('click', syncOfflineVerifications);
             
             // Inicializar BarcodeDetector se suportado
             if ('BarcodeDetector' in window) {
@@ -1166,31 +1121,17 @@
                     
                     // Atualizar apenas se ainda não foi verificado
                     if (!foundProduct.verified) {
-                        if (isOnline) {
-                            foundProduct.verified = true;
-                            verifiedItems++;
-                            verifiedItemsElement.textContent = verifiedItems;
-                            showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
-                        } else {
-                            foundProduct.offlineVerified = true;
-                            offlineVerifiedItems++;
-                            offlineVerifiedElement.textContent = offlineVerifiedItems;
-                            showStatus(`Produto ${foundProduct.number} verificado offline!`, 'offline');
-                            
-                            // Adicionar à fila de sincronização
-                            if (!offlineQueue.includes(foundProduct.id)) {
-                                offlineQueue.push(foundProduct.id);
-                                localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
-                                syncButton.disabled = false;
-                            }
-                        }
+                        foundProduct.verified = true;
+                        verifiedItems++;
+                        verifiedItemsElement.textContent = verifiedItems;
+                        showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
                         
-                        pendingItemsElement.textContent = totalItems - verifiedItems - offlineVerifiedItems;
+                        pendingItemsElement.textContent = totalItems - verifiedItems;
                         updateProgressBar();
                         
                         // Atualizar visualização da lista
                         renderProductList();
-                        saveOfflineData();
+                        saveData();
                     } else {
                         showStatus("Produto já verificado anteriormente", true);
                     }
@@ -1206,8 +1147,7 @@
             }
             
             function updateProgressBar() {
-                const totalVerified = verifiedItems + offlineVerifiedItems;
-                const percentage = totalItems > 0 ? (totalVerified / totalItems) * 100 : 0;
+                const percentage = totalItems > 0 ? (verifiedItems / totalItems) * 100 : 0;
                 progressBar.style.width = `${percentage}%`;
                 progressPercent.textContent = `${Math.round(percentage)}%`;
             }
@@ -1219,8 +1159,6 @@
                     statusMessage.className = 'status-message status-found';
                 } else if (type === false) {
                     statusMessage.className = 'status-message status-not-found';
-                } else if (type === 'offline') {
-                    statusMessage.className = 'status-message status-offline';
                 }
                 
                 statusMessage.style.display = 'block';
@@ -1249,8 +1187,6 @@
                     
                     if (product.verified) {
                         item.className = 'product-item verified';
-                    } else if (product.offlineVerified) {
-                        item.className = 'product-item offline-verified';
                     } else {
                         item.className = 'product-item';
                     }
@@ -1260,9 +1196,7 @@
                     item.innerHTML = `
                         <div class="item-number">
                             <span class="status-icon">
-                                ${product.verified ? '<i class="fas fa-check"></i>' : 
-                                  product.offlineVerified ? '<i class="fas fa-clock"></i>' : 
-                                  '<i class="fas fa-box"></i>'}
+                                ${product.verified ? '<i class="fas fa-check"></i>' : '<i class="fas fa-box"></i>'}
                             </span>
                             ${product.number}
                         </div>
@@ -1270,9 +1204,7 @@
                         <div class="status-text">
                             ${product.verified 
                                 ? '<i class="fas fa-check-circle"></i> Verificado' 
-                                : product.offlineVerified
-                                    ? '<i class="fas fa-clock"></i> Aguardando sincronização'
-                                    : '<i class="fas fa-clock"></i> Pendente'}
+                                : '<i class="fas fa-clock"></i> Pendente'}
                         </div>
                     `;
                     
@@ -1305,8 +1237,7 @@
                             data.push({
                                 number: number,
                                 id: id,
-                                verified: false,
-                                offlineVerified: false
+                                verified: false
                             });
                         }
                     }
@@ -1315,27 +1246,23 @@
                 return data;
             }
             
-            // Funções para gerenciar dados offline
-            function saveOfflineData() {
+            // Funções para gerenciar dados
+            function saveData() {
                 localStorage.setItem('deliveryData', JSON.stringify(deliveryData));
-                localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
                 localStorage.setItem('verifiedItems', verifiedItems.toString());
-                localStorage.setItem('offlineVerifiedItems', offlineVerifiedItems.toString());
             }
             
-            function loadOfflineData() {
+            function loadData() {
                 const savedData = localStorage.getItem('deliveryData');
                 if (savedData) {
                     deliveryData = JSON.parse(savedData);
                     totalItems = deliveryData.length;
                     
                     verifiedItems = parseInt(localStorage.getItem('verifiedItems') || '0');
-                    offlineVerifiedItems = parseInt(localStorage.getItem('offlineVerifiedItems') || '0');
                     
                     totalItemsElement.textContent = totalItems;
                     verifiedItemsElement.textContent = verifiedItems;
-                    offlineVerifiedElement.textContent = offlineVerifiedItems;
-                    pendingItemsElement.textContent = totalItems - verifiedItems - offlineVerifiedItems;
+                    pendingItemsElement.textContent = totalItems - verifiedItems;
                     
                     updateProgressBar();
                     renderProductList();
@@ -1343,57 +1270,6 @@
                     scanButton.disabled = false;
                     stopButton.disabled = false;
                 }
-                
-                const savedQueue = localStorage.getItem('offlineQueue');
-                if (savedQueue) {
-                    offlineQueue = JSON.parse(savedQueue);
-                    syncButton.disabled = offlineQueue.length === 0;
-                }
-            }
-            
-            function syncOfflineVerifications() {
-                if (!isOnline) {
-                    showStatus("Você está offline. Conecte-se para sincronizar.", false);
-                    return;
-                }
-                
-                if (offlineQueue.length === 0) {
-                    showStatus("Nenhuma verificação offline para sincronizar.", true);
-                    return;
-                }
-                
-                // Simular envio para o servidor
-                setTimeout(() => {
-                    // Marcar itens offline como verificados
-                    deliveryData.forEach(product => {
-                        if (product.offlineVerified) {
-                            product.verified = true;
-                            product.offlineVerified = false;
-                            verifiedItems++;
-                        }
-                    });
-                    
-                    // Atualizar contadores
-                    verifiedItems += offlineVerifiedItems;
-                    verifiedItemsElement.textContent = verifiedItems;
-                    offlineVerifiedItems = 0;
-                    offlineVerifiedElement.textContent = offlineVerifiedItems;
-                    pendingItemsElement.textContent = totalItems - verifiedItems;
-                    
-                    // Limpar fila offline
-                    offlineQueue = [];
-                    localStorage.removeItem('offlineQueue');
-                    saveOfflineData();
-                    
-                    // Atualizar interface
-                    updateProgressBar();
-                    renderProductList();
-                    
-                    showStatus(`${offlineVerifiedItems} verificações offline sincronizadas com sucesso!`, true);
-                    syncButton.disabled = true;
-                }, 1500);
-                
-                showStatus("Sincronizando verificações offline...", true);
             }
             
             // Verificar login ao carregar a página
