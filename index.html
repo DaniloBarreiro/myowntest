@@ -47,7 +47,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             margin: 15px auto;
-            transition: all 0.3s ease;
         }
         
         /* Tela de Login */
@@ -153,7 +152,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
         }
         
         .user-info {
@@ -209,14 +207,9 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.3s;
             font-size: 0.9rem;
             flex: 1;
             min-width: 140px;
-        }
-        
-        .file-input button:hover {
-            background: #2980b9;
         }
         
         .file-name {
@@ -306,7 +299,7 @@
         .scanner-container {
             position: relative;
             min-height: 300px;
-            height: 50vh; /* Altura responsiva baseada na tela */
+            height: 50vh;
             max-height: 450px;
             background: var(--primary);
             border-radius: 12px;
@@ -316,6 +309,7 @@
             justify-content: center;
             color: white;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s;
         }
         
         #scanner-view {
@@ -323,7 +317,6 @@
             height: 100%;
             object-fit: cover;
             background: #000;
-            transform: scaleX(-1);
         }
         
         .scanner-overlay {
@@ -378,8 +371,6 @@
         
         .btn:disabled {
             background: #bdc3c7;
-            transform: none;
-            box-shadow: none;
             cursor: not-allowed;
         }
         
@@ -440,13 +431,8 @@
             padding: 0 20px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
             font-size: 0.95rem;
             min-width: 100px;
-        }
-        
-        .input-group button:hover {
-            background: #8e44ad;
         }
         
         .product-list-container {
@@ -617,6 +603,16 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes borderPulse {
+            0% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.8); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0); }
+        }
+        
+        .scanner-pulse {
+            animation: borderPulse 0.5s ease-out;
         }
         
         /* Responsividade para dispositivos móveis */
@@ -811,7 +807,7 @@
             
             <div class="verification-section">
                 <div>
-                    <div class="scanner-container">
+                    <div class="scanner-container" id="scanner-container">
                         <video id="scanner-view" playsinline></video>
                         <div class="scanner-overlay" id="scanner-overlay">
                             <i class="fas fa-camera"></i>
@@ -867,10 +863,21 @@
             </div>
             
             <footer>
-                <p>Sistema de Verificação de Entregas &copy; 2023 | Versão mobile-otimizada</p>
+                <p>Sistema de Verificação de Entregas &copy; 2023 | Leitura com feedback visual e sonoro</p>
             </footer>
         </div>
     </div>
+
+    <!-- Áudio para feedback sonoro -->
+    <audio id="success-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="warning-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+    <audio id="error-sound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -890,6 +897,7 @@
             const scanButton = document.getElementById('scan-button');
             const stopButton = document.getElementById('stop-button');
             const scannerView = document.getElementById('scanner-view');
+            const scannerContainer = document.getElementById('scanner-container');
             const scannerOverlay = document.getElementById('scanner-overlay');
             const statusMessage = document.getElementById('status-message');
             const productList = document.getElementById('product-list');
@@ -901,6 +909,11 @@
             const verifiedItemsElement = document.getElementById('verified-items');
             const pendingItemsElement = document.getElementById('pending-items');
             
+            // Elementos de áudio
+            const successSound = document.getElementById('success-sound');
+            const warningSound = document.getElementById('warning-sound');
+            const errorSound = document.getElementById('error-sound');
+            
             // Variáveis de estado
             let scannerActive = false;
             let codeReader;
@@ -908,6 +921,8 @@
             let pdfLoaded = false;
             let verifiedItems = 0;
             let totalItems = 0;
+            let canScan = true; // Controla o intervalo entre leituras
+            let cooldownInterval = null; // Referência do intervalo
 
             // Verificar se o usuário já está logado
             function checkLogin() {
@@ -1080,12 +1095,13 @@
             }
             
             function detectBarcode() {
-                if (!scannerActive) return;
+                if (!scannerActive || !canScan) return;
                 
                 codeReader.detect(scannerView)
                     .then(barcodes => {
-                        if (barcodes.length > 0) {
+                        if (barcodes.length > 0 && canScan) {
                             const barcode = barcodes[0].rawValue;
+                            startCooldown();
                             verifyProduct(barcode);
                         }
                         requestAnimationFrame(detectBarcode);
@@ -1096,9 +1112,27 @@
                     });
             }
             
+            // Iniciar intervalo de 1 segundo com feedback visual
+            function startCooldown() {
+                canScan = false;
+                
+                // Feedback visual - piscar bordas
+                scannerContainer.classList.add('scanner-pulse');
+                
+                setTimeout(() => {
+                    canScan = true;
+                    scannerContainer.classList.remove('scanner-pulse');
+                }, 1000);
+            }
+            
             function verifyManualCode() {
+                if (!canScan) {
+                    return;
+                }
+                
                 const code = manualCodeInput.value.trim();
                 if (code) {
+                    startCooldown();
                     verifyProduct(code);
                     manualCodeInput.value = '';
                 }
@@ -1126,6 +1160,10 @@
                         verifiedItemsElement.textContent = verifiedItems;
                         showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
                         
+                        // Tocar som de sucesso
+                        successSound.currentTime = 0;
+                        successSound.play();
+                        
                         pendingItemsElement.textContent = totalItems - verifiedItems;
                         updateProgressBar();
                         
@@ -1134,6 +1172,10 @@
                         saveData();
                     } else {
                         showStatus("Produto já verificado anteriormente", true);
+                        
+                        // Tocar som de alerta
+                        warningSound.currentTime = 0;
+                        warningSound.play();
                     }
                     
                     // Rolagem para o item verificado
@@ -1143,6 +1185,10 @@
                     }
                 } else {
                     showStatus("Produto NÃO encontrado na lista", false);
+                    
+                    // Tocar som de erro
+                    errorSound.currentTime = 0;
+                    errorSound.play();
                 }
             }
             
