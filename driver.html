@@ -1,244 +1,1250 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificador de Carga - Motorista</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <title>Sistema Logística Express - Motorista</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --light: #ecf0f1;
+            --dark: #34495e;
+            --text: #333;
+            --background: #f8f9fa;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e5799, #207cca);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin: 15px auto;
+        }
+
+        .driver-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .upload-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .file-input {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .file-input button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .file-name {
+            background: var(--background);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed #ddd;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            background: var(--background);
+            border-bottom: 1px solid #eee;
+        }
+
+        .progress-container {
+            padding: 15px;
+            background: white;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #1abc9c);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .verification-section {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .verification-section {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .scanner-container {
+            position: relative;
+            min-height: 300px;
+            height: 50vh;
+            max-height: 450px;
+            background: var(--primary);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        #scanner-view {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .scanner-overlay i {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .scanner-overlay p {
+            font-size: 1.1rem;
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .manual-input-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .manual-input {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .manual-input label {
+            font-weight: 500;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .manual-input label i {
+            color: var(--secondary);
+            font-size: 1.3rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-width: 150px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .input-group button {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            min-width: 100px;
+        }
+
+        .product-list-container {
+            margin-top: 25px;
+            grid-column: 1 / -1;
+        }
+
+        .product-list-header {
+            display: grid;
+            grid-template-columns: 80px 1fr 120px;
+            padding: 12px 15px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.9rem;
+        }
+
+        .product-list {
+            list-style: none;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .product-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 120px;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .product-item:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .product-item:hover {
+            background: #f0f8ff;
+        }
+
+        .product-item.verified {
+            background: #f0fff4;
+        }
+
+        .product-item.verified .item-number {
+            color: var(--success);
+        }
+
+        .item-number {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-id {
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: var(--light);
+            font-size: 0.8rem;
+        }
+
+        .verified .status-icon {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-text {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+            animation: fadeIn 0.3s ease;
+            grid-column: 1 / -1;
+            font-size: 0.95rem;
+        }
+
+        .status-found {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-not-found {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .backend-preview {
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px;
+            font-size: 0.85rem;
+        }
+
+        .backend-preview h4 {
+            margin-bottom: 8px;
+            color: #1e5799;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+
+        .report-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .report-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .report-stat {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .report-stat h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-success {
+            color: #28a745;
+        }
+
+        .stat-warning {
+            color: #ffc107;
+        }
+
+        .stat-danger {
+            color: #dc3545;
+        }
+
+        .pending-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .pending-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .finalize-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes borderPulse {
+            0% {
+                box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.8);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0px rgba(255, 255, 255, 0);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translateX(-5px);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translateX(5px);
+            }
+        }
+
+        .scanner-pulse {
+            animation: borderPulse 0.5s ease-out;
+        }
+
+        .scanner-error {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            .scanner-container {
+                height: 40vh;
+                max-height: 350px;
+            }
+
+            .scanner-overlay i {
+                font-size: 3rem;
+            }
+
+            .scanner-overlay p {
+                font-size: 1rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .product-list-header,
+            .product-item {
+                grid-template-columns: 70px 1fr 100px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                margin: 10px auto;
+                border-radius: 12px;
+            }
+
+            .scanner-container {
+                height: 35vh;
+            }
+
+            .product-list-header,
+            .product-item {
+                grid-template-columns: 60px 1fr;
+            }
+
+            .product-list-header div:nth-child(3),
+            .product-item .status-text {
+                display: none;
+            }
+
+            .file-input button {
+                width: 100%;
+            }
+
+            .input-group button {
+                width: 100%;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .scanner-overlay p {
+                font-size: 0.9rem;
+                padding: 0 10px;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .backend-preview {
+                margin: 10px;
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <div id="login-screen">
-        <div class="card login-container">
-            <h1>Verificador de Carga</h1>
-            <p>Entre com seu usuário e senha.</p>
-            <input type="text" id="username" placeholder="Usuário" autocomplete="username">
-            <input type="password" id="password" placeholder="Senha" autocomplete="current-password">
-            <button id="loginButton">Entrar</button>
-            <p id="login-error" class="hidden">Usuário ou senha inválidos.</p>
-        </div>
-    </div>
+    <div class="container">
+        <header class="driver-header">
+            <h1 style="font-size: 1.2rem;"><i class="fas fa-truck-loading"></i> Sistema de Verificação de Entregas</h1>
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">M</div>
+                <div>
+                    <div id="user-name" style="font-size: 0.9rem;">Motorista Padrão</div>
+                </div>
+            </div>
+        </header>
 
-    <main id="app" class="hidden">
-        <div class="card app-header">
-            <h2 id="welcomeMessage"></h2>
-            <button class="logout-button">Sair</button>
+        <div class="backend-preview">
+            <h4><i class="fas fa-server"></i> Sistema Integrado</h4>
+            <p>As verificações feitas aqui serão salvas localmente no dispositivo.</p>
         </div>
-        <div class="card" id="scanner-section">
-            <div id="qr-reader">
-                <div id="qr-reader-placeholder">A câmera aparecerá aqui</div>
-            </div>
-            <div id="scanner-controls">
-                <button id="startScanButton">📷 Iniciar Leitura</button>
-                <button id="manualEntryButton">⌨️ Digitar Código</button>
-            </div>
-            <p id="scan-result"></p>
-        </div>
-        <div class="card" id="route-list-section">
-            <div class="app-header">
-                <h2>Pacotes da Rota</h2>
-                <button id="toggle-list-button">Esconder</button>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="progressBar"></div>
-                <span id="progressText">0%</span>
-            </div>
-            <div id="full-route-list"></div>
-        </div>
-    </main>
 
-    <div id="manualEntryModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">×</span>
-            <h3>Digitar Código do Pacote</h3>
-            <input type="text" id="manualCodeInput" placeholder="Insira o código aqui...">
-            <button id="submitManualCode">Verificar Código</button>
+        <div class="upload-section">
+            <h2><i class="fas fa-file-pdf"></i> Carregar Roteiro de Entregas</h2>
+            <div class="file-input">
+                <input type="file" id="pdf-upload-driver" accept=".pdf" style="display: none;">
+                <button id="upload-button">
+                    <i class="fas fa-upload"></i> Selecionar PDF
+                </button>
+            </div>
+            <div id="file-name" class="file-name">
+                <i class="fas fa-file"></i> Nenhum arquivo selecionado
+            </div>
         </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3 id="total-items">0</h3>
+                <p>Total de Itens</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="verified-items">0</h3>
+                <p>Itens Verificados</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="pending-items">0</h3>
+                <p>Itens Pendentes</p>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-text">
+                <span>Progresso das Entregas</span>
+                <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="verification-section">
+            <div>
+                <div class="scanner-container" id="scanner-container">
+                    <video id="scanner-view" playsinline></video>
+                    <div class="scanner-overlay" id="scanner-overlay">
+                        <i class="fas fa-camera"></i>
+                        <p>Clique em Iniciar Escaneamento para verificar produtos</p>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="scan-button" class="btn btn-primary" disabled>
+                        <i class="fas fa-play"></i> Iniciar Escaneamento
+                    </button>
+                    <button id="stop-button" class="btn btn-danger" disabled>
+                        <i class="fas fa-stop"></i> Parar
+                    </button>
+                </div>
+            </div>
+
+            <div class="manual-input-container">
+                <div class="manual-input">
+                    <label>
+                        <i class="fas fa-keyboard"></i> Digitação Manual
+                    </label>
+                    <p>Digite o código do pacote para verificação</p>
+
+                    <div class="input-group">
+                        <input type="text" id="manual-code" placeholder="ID do pacote ou número">
+                        <button id="manual-submit">
+                            <i class="fas fa-check"></i> Verificar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="status-message" class="status-message"></div>
+
+            <div class="product-list-container">
+                <h2><i class="fas fa-list"></i> Lista de Produtos</h2>
+
+                <div class="product-list-header">
+                    <div>N.º</div>
+                    <div>ID do Pacote</div>
+                    <div>Status</div>
+                </div>
+
+                <ul id="product-list" class="product-list">
+                    <li class="empty-list">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>Nenhum produto carregado</h3>
+                        <p>Carregue um PDF para ver a lista de produtos</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <button id="finalize-btn" class="btn btn-primary" style="margin: 20px auto; display: block; max-width: 300px;">
+            <i class="fas fa-flag-checkered"></i> Finalizar Verificação
+        </button>
+
+        <div class="report-container" id="report-container">
+            <div class="report-header">
+                <h2><i class="fas fa-file-alt"></i> Relatório Final</h2>
+                <button id="download-report" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Baixar PDF
+                </button>
+            </div>
+
+            <div class="report-stats">
+                <div class="report-stat">
+                    <h3 class="stat-success" id="final-verified">0</h3>
+                    <p>Itens Verificados</p>
+                </div>
+                <div class="report-stat">
+                    <h3 class="stat-warning" id="final-pending">0</h3>
+                    <p>Itens Pendentes</p>
+                </div>
+                <div class="report-stat">
+                    <h3 class="stat-success" id="final-percent">0%</h3>
+                    <p>Taxa de Sucesso</p>
+                </div>
+            </div>
+
+            <div>
+                <h3><i class="fas fa-exclamation-triangle"></i> Itens Não Verificados</h3>
+                <div id="pending-list" class="pending-list">
+                    <p>Nenhum item pendente</p>
+                </div>
+            </div>
+
+            <button id="finish-route" class="finalize-btn">
+                <i class="fas fa-check-circle"></i> Finalizar Rota
+            </button>
+        </div>
+
+        <footer>
+            <p>Sistema de Verificação de Entregas © 2023 | Leitura com feedback visual e sonoro</p>
+        </footer>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const initialDatabaseState = {
-                users: { "admin": { password: "admin", name: "Administrador", isAdmin: true }, "joao.silva": { password: "123", name: "João Silva", isAdmin: false }, "maria.souza": { password: "456", name: "Maria Souza", isAdmin: false }, "motorista3": { password: "789", name: "Carlos Pereira", isAdmin: false } },
-                routes: { "joao.silva": [], "maria.souza": [], "motorista3": [] }
-            };
+        // Elementos DOM
+        const uploadButton = document.getElementById('upload-button');
+        const pdfUploadDriver = document.getElementById('pdf-upload-driver');
+        const fileName = document.getElementById('file-name');
+        const scanButton = document.getElementById('scan-button');
+        const stopButton = document.getElementById('stop-button');
+        const scannerView = document.getElementById('scanner-view');
+        const scannerContainer = document.getElementById('scanner-container');
+        const scannerOverlay = document.getElementById('scanner-overlay');
+        const statusMessage = document.getElementById('status-message');
+        const productList = document.getElementById('product-list');
+        const manualCodeInput = document.getElementById('manual-code');
+        const manualSubmitButton = document.getElementById('manual-submit');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const totalItemsElement = document.getElementById('total-items');
+        const verifiedItemsElement = document.getElementById('verified-items');
+        const pendingItemsElement = document.getElementById('pending-items');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const finalizeBtn = document.getElementById('finalize-btn');
+        const reportContainer = document.getElementById('report-container');
+        const finalVerified = document.getElementById('final-verified');
+        const finalPending = document.getElementById('final-pending');
+        const finalPercent = document.getElementById('final-percent');
+        const pendingList = document.getElementById('pending-list');
+        const downloadReportBtn = document.getElementById('download-report');
+        const finishRouteBtn = document.getElementById('finish-route');
 
-            let fakeDatabase;
-            const storedDb = localStorage.getItem('fakeDatabase');
-            fakeDatabase = storedDb ? JSON.parse(storedDb) : JSON.parse(JSON.stringify(initialDatabaseState));
+        // Variáveis de estado
+        let scannerActive = false;
+        let codeReader;
+        let deliveryData = [];
+        let pdfLoaded = false;
+        let verifiedItems = 0;
+        let totalItems = 0;
+        let canScan = true;
+        let currentDriver = {
+            id: 'driver-default',
+            name: 'Motorista Padrão'
+        };
 
-            const loginScreen = document.getElementById('login-screen');
-            const appScreen = document.getElementById('app');
-            const loginButton = document.getElementById('loginButton');
-            const loginError = document.getElementById('login-error');
-            const welcomeMessage = document.getElementById('welcomeMessage');
-            const startScanButton = document.getElementById('startScanButton');
+        // Configuração do Web Audio API
+        const audioContext = new AudioContext();
 
-            let routeData = [];
-            let html5QrCode;
-            let isScanCooldown = false;
-            let audioContext = null;
+        function playSuccessSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-            document.querySelector('.logout-button').addEventListener('click', handleLogout);
-            loginButton.addEventListener('click', handleLogin);
-            document.getElementById('password').addEventListener('keyup', (e) => { if (e.key === 'Enter') handleLogin(); });
+            oscillator.type = 'sine'; // Onda senoidal para um som suave
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 440 Hz (nota A4)
+            gainNode.gain.setValueAtTime(1.0, audioContext.currentTime); // Volume máximo
 
-            function initAudioContext() {
-                if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Fade out
+            oscillator.stop(audioContext.currentTime + 0.5); // Duração de 0,5 segundos
+        }
+
+        function playErrorSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = 'square'; // Onda quadrada para um som áspero
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime); // 200 Hz (tom grave)
+            gainNode.gain.setValueAtTime(1.0, audioContext.currentTime); // Volume máximo
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5); // Fade out
+            oscillator.stop(audioContext.currentTime + 0.5); // Duração de 0,5 segundos
+        }
+
+        // Carregar dados do motorista
+        function loadDriverData() {
+            try {
+                const initials = currentDriver.name.charAt(0).toUpperCase();
+                userAvatar.textContent = initials;
+                userName.textContent = currentDriver.name;
+            } catch (error) {
+                console.error('Erro ao carregar dados do motorista:', error);
+            }
+        }
+
+        // Configurar botões de scanner
+        scanButton.addEventListener('click', startScanner);
+        stopButton.addEventListener('click', stopScanner);
+
+        // Configurar verificação manual
+        manualSubmitButton.addEventListener('click', verifyManualCode);
+        manualCodeInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyManualCode();
+        });
+
+        // Inicializar BarcodeDetector se suportado
+        if ('BarcodeDetector' in window) {
+            codeReader = new BarcodeDetector({
+                formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_39', 'code_128']
+            });
+        } else {
+            scanButton.disabled = true;
+            showStatus("Seu navegador não suporta leitura de códigos de barras.", false);
+        }
+
+        // Event Listeners do relatório
+        finishRouteBtn.addEventListener('click', function () {
+            alert('Rota finalizada com sucesso! Relatório salvo localmente.');
+            // Resetar estado para nova rota
+            localStorage.removeItem('verifications');
+            localStorage.removeItem('reports');
+            location.reload();
+        });
+
+        downloadReportBtn.addEventListener('click', generatePDFReport);
+        finalizeBtn.addEventListener('click', showFinalReport);
+
+        // Funções do motorista
+        function startScanner() {
+            if (!pdfLoaded) {
+                showStatus("Por favor, carregue o PDF primeiro", false);
+                playErrorSound();
+                return;
+            }
+
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
-            }
-            function playSound(type) {
-                if (!audioContext) return;
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                if (type === 'success') {
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                } else {
-                    oscillator.type = 'square';
-                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                }
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            }
+            })
+                .then(function (stream) {
+                    scannerView.srcObject = stream;
+                    return scannerView.play();
+                })
+                .then(() => {
+                    scannerActive = true;
+                    scannerOverlay.style.display = 'none';
+                    scanButton.disabled = true;
+                    stopButton.disabled = false;
+                    detectBarcode();
+                })
+                .catch(function (err) {
+                    console.error("Erro ao acessar a câmera: ", err);
+                    showStatus("Não foi possível acessar a câmera. Verifique as permissões.", false);
+                    playErrorSound();
+                });
+        }
 
-            function handleLogin() {
-                initAudioContext();
-                const username = document.getElementById('username').value.trim();
-                const password = document.getElementById('password').value.trim();
-                const user = fakeDatabase.users[username];
-
-                if (user && user.password === password && !user.isAdmin) {
-                    loginScreen.classList.add('hidden');
-                    loginError.classList.add('hidden');
-                    welcomeMessage.textContent = `Bem-vindo, ${user.name}!`;
-                    appScreen.classList.remove('hidden');
-                    loadUserRoute(username);
-                } else {
-                    playSound('error');
-                    loginError.textContent = user && user.isAdmin ? "Acesso de admin não permitido aqui." : "Usuário ou senha inválidos.";
-                    loginError.classList.remove('hidden');
-                }
+        function stopScanner() {
+            if (scannerView.srcObject) {
+                const tracks = scannerView.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                scannerView.srcObject = null;
             }
 
-            function handleLogout() {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().catch(err => console.error(err));
-                }
-                appScreen.classList.add('hidden');
-                loginScreen.classList.remove('hidden');
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-            }
+            scannerActive = false;
+            scannerOverlay.style.display = 'flex';
+            scanButton.disabled = false;
+            stopButton.disabled = true;
+        }
 
-            startScanButton.addEventListener('click', startScanner);
+        function detectBarcode() {
+            if (!scannerActive || !canScan) return;
 
-            function loadUserRoute(username) {
-                routeData = fakeDatabase.routes[username] || [];
-                html5QrCode = new Html5Qrcode("qr-reader");
-                renderFullList();
-                updateProgress();
-            }
-
-            function validateCode(code) {
-                if (isScanCooldown) return;
-                isScanCooldown = true;
-                setTimeout(() => { isScanCooldown = false; }, 1500);
-
-                const foundItem = routeData.find(item => item.produto_codigo === code);
-                if (foundItem) {
-                    if (!foundItem.scanned) {
-                        foundItem.scanned = true;
-                        playSound('success');
-                        displayFeedback(`Código ${code} OK!`, "success");
-                        const itemElement = document.getElementById(foundItem.id);
-                        if (itemElement) itemElement.querySelector('.status-indicator').classList.add('scanned');
-                        updateProgress();
-                    } else {
-                        playSound('error');
-                        displayFeedback(`Código ${code} já foi verificado.`, "info");
+            codeReader.detect(scannerView)
+                .then(barcodes => {
+                    if (barcodes.length > 0 && canScan) {
+                        const barcode = barcodes[0].rawValue;
+                        verifyProduct(barcode);
                     }
-                } else {
-                    playSound('error');
-                    displayFeedback(`ERRO: Código ${code} não pertence a esta rota!`, "error");
-                }
+                    requestAnimationFrame(detectBarcode);
+                })
+                .catch(err => {
+                    console.error("Erro na detecção: ", err);
+                    requestAnimationFrame(detectBarcode);
+                });
+        }
+
+        function verifyManualCode() {
+            if (!canScan) {
+                return;
             }
 
-            function startScanner() {
-                if (html5QrCode && html5QrCode.isScanning) {
-                    html5QrCode.stop().then(() => {
-                        startScanButton.textContent = "📷 Iniciar Leitura";
-                        document.getElementById('qr-reader-placeholder').style.display = 'flex';
-                    }).catch(err => console.error(err));
-                    return;
-                }
-                document.getElementById('qr-reader-placeholder').style.display = 'none';
-                startScanButton.disabled = true;
-                startScanButton.textContent = "Carregando...";
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => validateCode(decodedText))
-                    .then(() => {
-                        startScanButton.disabled = false;
-                        startScanButton.textContent = "Parar Leitura";
-                    }).catch(err => {
-                        alert(`Erro ao iniciar a câmera: ${err}. Verifique as permissões.`);
-                        startScanButton.disabled = false;
-                        startScanButton.textContent = "📷 Iniciar Leitura";
-                        document.getElementById('qr-reader-placeholder').style.display = 'flex';
+            const code = manualCodeInput.value.trim();
+            if (code) {
+                verifyProduct(code);
+                manualCodeInput.value = '';
+            }
+        }
+
+        function verifyProduct(barcode) {
+            const foundIndex = deliveryData.findIndex(item =>
+                item.id === barcode ||
+                item.number === barcode
+            );
+
+            if (foundIndex !== -1) {
+                const foundProduct = deliveryData[foundIndex];
+
+                if (!foundProduct.verified) {
+                    foundProduct.verified = true;
+                    verifiedItems++;
+                    verifiedItemsElement.textContent = verifiedItems;
+                    showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
+                    playSuccessSound();
+
+                    // Registrar verificação no Local Storage
+                    let verifications = JSON.parse(localStorage.getItem('verifications') || '[]');
+                    verifications.push({
+                        driver: currentDriver.name,
+                        product_id: foundProduct.id,
+                        product_number: foundProduct.number,
+                        timestamp: new Date().toISOString()
                     });
+                    localStorage.setItem('verifications', JSON.stringify(verifications));
+
+                    pendingItemsElement.textContent = totalItems - verifiedItems;
+                    updateProgressBar();
+                    renderProductList();
+                } else {
+                    showStatus("Produto já verificado anteriormente", true);
+                    playErrorSound();
+                }
+
+                const itemElement = document.getElementById(`product-${foundIndex}`);
+                if (itemElement) {
+                    itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            } else {
+                showStatus("Produto NÃO encontrado na lista", false);
+                playErrorSound();
+            }
+        }
+
+        function updateProgressBar() {
+            const percentage = totalItems > 0 ? (verifiedItems / totalItems) * 100 : 0;
+            progressBar.style.width = `${percentage}%`;
+            progressPercent.textContent = `${Math.round(percentage)}%`;
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+
+            if (type === true) {
+                statusMessage.className = 'status-message status-found';
+            } else if (type === false) {
+                statusMessage.className = 'status-message status-not-found';
             }
 
-            const manualEntryButton = document.getElementById('manualEntryButton');
-            const manualEntryModal = document.getElementById('manualEntryModal');
-            const closeModalButton = document.querySelector('.close-button');
-            const submitManualCode = document.getElementById('submitManualCode');
-            const toggleListButton = document.getElementById('toggle-list-button');
-            manualEntryButton.addEventListener('click', () => manualEntryModal.style.display = 'block');
-            closeModalButton.addEventListener('click', () => manualEntryModal.style.display = 'none');
-            submitManualCode.addEventListener('click', processManualCode);
-            toggleListButton.addEventListener('click', toggleRouteList);
-            window.addEventListener('click', (event) => { if (event.target == manualEntryModal) manualEntryModal.style.display = 'none'; });
+            statusMessage.style.display = 'block';
 
-            function renderFullList() {
-                const listDiv = document.getElementById('full-route-list');
-                listDiv.innerHTML = '';
-                if (!routeData || routeData.length === 0) {
-                    listDiv.innerHTML = "<p style='padding: 15px; text-align: center;'>Nenhuma rota atribuída.</p>";
-                    return;
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function renderProductList() {
+            if (deliveryData.length === 0) {
+                productList.innerHTML = `
+                    <li class="empty-list">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>Nenhum produto carregado</h3>
+                        <p>Carregue um PDF para ver a lista de produtos</p>
+                    </li>
+                `;
+                return;
+            }
+
+            productList.innerHTML = '';
+
+            deliveryData.forEach((product, index) => {
+                const item = document.createElement('li');
+
+                if (product.verified) {
+                    item.className = 'product-item verified';
+                } else {
+                    item.className = 'product-item';
                 }
-                routeData.forEach(item => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'route-item';
-                    itemDiv.id = item.id;
-                    const itemInfo = document.createElement('div');
-                    itemInfo.className = 'item-info';
-                    // ALTERAÇÃO AQUI: Exibe apenas Parada e Código
-                    itemInfo.innerHTML = `
-                        <p>Parada: <strong>${item.ordem_parada}</strong> | Código: <strong>${item.produto_codigo}</strong></p>
-                    `;
-                    const statusIndicator = document.createElement('div');
-                    statusIndicator.className = 'status-indicator';
-                    if (item.scanned) statusIndicator.classList.add('scanned');
-                    itemDiv.appendChild(itemInfo);
-                    itemDiv.appendChild(statusIndicator);
-                    listDiv.appendChild(itemDiv);
+
+                item.id = `product-${index}`;
+
+                item.innerHTML = `
+                    <div class="item-number">
+                        <span class="status-icon">
+                            ${product.verified ? '<i class="fas fa-check"></i>' : '<i class="fas fa-box"></i>'}
+                        </span>
+                        ${product.number}
+                    </div>
+                    <div class="item-id">${product.id}</div>
+                    <div class="status-text">
+                        ${product.verified
+                        ? '<i class="fas fa-check-circle"></i> Verificado'
+                        : '<i class="fas fa-clock"></i> Pendente'}
+                    </div>
+                `;
+
+                productList.appendChild(item);
+            });
+        }
+
+        async function processPDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const data = [];
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(' ');
+
+                const regex = /(\d+[A-Z]*)\s+(\d{10,12})/g;
+                let match;
+
+                while ((match = regex.exec(text)) !== null) {
+                    const number = match[1];
+                    const id = match[2];
+
+                    if (!data.some(item => item.id === id)) {
+                        data.push({
+                            number: number,
+                            id: id,
+                            verified: false
+                        });
+                    }
+                }
+            }
+
+            return data;
+        }
+
+        async function showFinalReport() {
+            document.querySelector('.verification-section').style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'none';
+            document.querySelector('.stats-container').style.display = 'none';
+            finalizeBtn.style.display = 'none';
+
+            const pending = totalItems - verifiedItems;
+            const percent = Math.round((verifiedItems / totalItems) * 100);
+
+            finalVerified.textContent = verifiedItems;
+            finalPending.textContent = pending;
+            finalPercent.textContent = `${percent}%`;
+
+            if (pending > 0) {
+                pendingList.innerHTML = '';
+                deliveryData.forEach(item => {
+                    if (!item.verified) {
+                        const div = document.createElement('div');
+                        div.className = 'pending-item';
+                        div.innerHTML = `
+                            <span>${item.number}</span>
+                            <span>${item.id}</span>
+                        `;
+                        pendingList.appendChild(div);
+                    }
+                });
+            } else {
+                pendingList.innerHTML = '<p>Todos os itens foram verificados com sucesso!</p>';
+            }
+
+            reportContainer.style.display = 'block';
+
+            // Registrar o relatório no Local Storage
+            let reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            reports.push({
+                driver_id: currentDriver.id,
+                driver_name: currentDriver.name,
+                date: new Date().toISOString(),
+                total_items: totalItems,
+                verified_items: verifiedItems,
+                pending_items: pending,
+                success_rate: percent
+            });
+            localStorage.setItem('reports', JSON.stringify(reports));
+        }
+
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFontSize(18);
+            doc.text('Relatório de Verificação de Entregas', 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Motorista: ${currentDriver.name}`, 20, 30);
+            doc.text(`Data: ${new Date().toLocaleDateString()}`, 20, 38);
+
+            doc.setFontSize(14);
+            doc.text('Resumo da Verificação', 20, 50);
+
+            doc.setFontSize(12);
+            doc.text(`Total de Itens: ${totalItems}`, 30, 60);
+            doc.setTextColor(40, 167, 69);
+            doc.text(`Itens Verificados: ${verifiedItems}`, 30, 68);
+            doc.setTextColor(220, 53, 69);
+            doc.text(`Itens Pendentes: ${totalItems - verifiedItems}`, 30, 76);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Taxa de Sucesso: ${Math.round((verifiedItems / totalItems) * 100)}%`, 30, 84);
+
+            if (totalItems - verifiedItems > 0) {
+                doc.setFontSize(14);
+                doc.text('Itens Não Verificados:', 20, 100);
+                doc.setFontSize(10);
+
+                let y = 110;
+                deliveryData.forEach(item => {
+                    if (!item.verified) {
+                        doc.text(`• ${item.number} - ${item.id}`, 25, y);
+                        y += 7;
+                    }
                 });
             }
-            function updateProgress() { const bar = document.getElementById('progressBar'); const text = document.getElementById('progressText'); const sButton = document.getElementById('startScanButton'); const mButton = document.getElementById('manualEntryButton'); if (!routeData || routeData.length === 0) { bar.style.width = '0%'; text.textContent = 'Nenhuma Rota'; sButton.disabled = true; mButton.disabled = true; return; } sButton.disabled = false; mButton.disabled = false; const scannedCount = routeData.filter(item => item.scanned).length; const percentage = Math.round((scannedCount / routeData.length) * 100); bar.style.width = `${percentage}%`; text.textContent = `${percentage}% (${scannedCount} de ${routeData.length})`; if (percentage === 100) { displayFeedback("🎉 Carga Completa!", "success", false); if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => console.error(err)); sButton.textContent = "Carga Verificada"; document.getElementById('qr-reader-placeholder').style.display = 'flex'; } sButton.disabled = true; } }
-            function processManualCode() { const input = document.getElementById('manualCodeInput'); const code = input.value.trim(); if (code) { validateCode(code); input.value = ''; manualEntryModal.style.display = 'none'; } }
-            document.getElementById('manualCodeInput').addEventListener('keyup', (e) => { if (e.key === 'Enter') processManualCode(); });
-            const scanResultEl = document.getElementById('scan-result');
-            function displayFeedback(message, type, autoClear = true) { scanResultEl.innerHTML = message; scanResultEl.className = `result-${type}`; if (autoClear) { setTimeout(() => { scanResultEl.innerHTML = ''; scanResultEl.className = ''; }, 4000); } }
-            function toggleRouteList() { const listDiv = document.getElementById('full-route-list'); const isHidden = listDiv.classList.toggle('hidden'); toggleListButton.textContent = isHidden ? 'Mostrar Lista' : 'Esconder'; }
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Gerado pelo Sistema Logística Express', 20, doc.internal.pageSize.height - 10);
+
+            doc.save(`relatorio-${currentDriver.name.replace(' ', '-')}-${new Date().toISOString().slice(0, 10)}.pdf`);
+        }
+
+        async function initDriver() {
+            loadDriverData();
+
+            uploadButton.addEventListener('click', () => pdfUploadDriver.click());
+            pdfUploadDriver.addEventListener('change', async function (e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    fileName.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name}`;
+
+                    try {
+                        deliveryData = await processPDF(file);
+                        totalItems = deliveryData.length;
+                        verifiedItems = 0;
+
+                        totalItemsElement.textContent = totalItems;
+                        verifiedItemsElement.textContent = verifiedItems;
+                        pendingItemsElement.textContent = totalItems;
+
+                        updateProgressBar();
+                        renderProductList();
+
+                        pdfLoaded = true;
+                        scanButton.disabled = false;
+                        stopButton.disabled = false;
+
+                        showStatus(`PDF carregado com sucesso! ${totalItems} itens encontrados.`, true);
+                    } catch (error) {
+                        console.error("Erro ao processar PDF:", error);
+                        showStatus("Erro ao processar o PDF. Verifique o formato do arquivo.", false);
+                        playErrorSound();
+                    }
+                }
+            });
+        }
+
+        // Garantir que o AudioContext seja desbloqueado após interação do usuário
+        document.addEventListener('click', function resumeAudioContext() {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    console.log('AudioContext desbloqueado');
+                });
+            }
+            document.removeEventListener('click', resumeAudioContext);
         });
+
+        initDriver();
     </script>
 </body>
-
 </html>
