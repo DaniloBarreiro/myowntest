@@ -558,6 +558,8 @@
         /* Estilo para a tela do motorista */
         .app-container {
             display: none;
+            max-width: 900px;
+            margin: 0 auto;
         }
         
         .driver-header {
@@ -1395,7 +1397,7 @@
             </div>
             
             <footer>
-                <p>Sistema de Gerenciamento de Rotas &copy; 2023 | Painel Administrativo - Versão 2.0</p>
+                <p>Sistema de Gerenciamento de Rotas © 2023 | Painel Administrativo - Versão 2.0</p>
             </footer>
         </div>
         
@@ -1551,7 +1553,7 @@
             </div>
             
             <footer>
-                <p>Sistema de Verificação de Entregas &copy; 2023 | Leitura com feedback visual e sonoro</p>
+                <p>Sistema de Verificação de Entregas © 2023 | Leitura com feedback visual e sonoro</p>
             </footer>
         </div>
     </div>
@@ -1688,7 +1690,7 @@
         let verifiedItems = 0;
         let totalItems = 0;
         let canScan = true;
-        let audioContext = null;
+        let audioContext = null; // MODIFICAÇÃO: Variável para o AudioContext
         let currentDriver = null;
 
         // Botão de finalização
@@ -2172,6 +2174,33 @@
         });
         
         downloadReportBtn.addEventListener('click', generatePDFReport);
+        
+        // ===== NOVA FUNÇÃO DE SOM =====
+        function playSound(type) {
+            // Inicializa o AudioContext no primeiro uso (requerido pelos navegadores)
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+
+            if (type === 'success') {
+                oscillator.type = 'sine'; // Som limpo e agradável
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // Frequência alta (nota Lá)
+            } else if (type === 'error') {
+                oscillator.type = 'sawtooth'; // Som mais "agressivo" para erro
+                oscillator.frequency.setValueAtTime(220, audioContext.currentTime); // Frequência baixa
+            }
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2); // Duração do som (200ms)
+        }
 
         // Funções do motorista
         function startScanner() {
@@ -2261,12 +2290,12 @@
                 const foundProduct = deliveryData[foundIndex];
                 
                 if (!foundProduct.verified) {
+                    playSound('success'); // MODIFICAÇÃO: Toca som de sucesso
                     foundProduct.verified = true;
                     verifiedItems++;
                     verifiedItemsElement.textContent = verifiedItems;
                     showStatus(`Produto ${foundProduct.number} verificado com sucesso!`, true);
                     
-                    // Registrar verificação para o painel administrativo
                     const verificationRecord = {
                         driver: currentDriver.name,
                         productId: foundProduct.id,
@@ -2280,6 +2309,7 @@
                     updateProgressBar();
                     renderProductList();
                 } else {
+                    playSound('error'); // MODIFICAÇÃO: Toca som de erro para duplicado
                     showStatus("Produto já verificado anteriormente", true);
                 }
                 
@@ -2288,6 +2318,7 @@
                     itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
             } else {
+                playSound('error'); // MODIFICAÇÃO: Toca som de erro para não encontrado
                 showStatus("Produto NÃO encontrado na lista", false);
             }
         }
