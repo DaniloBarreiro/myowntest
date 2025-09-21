@@ -1094,6 +1094,30 @@
             .stat-value {
                 font-size: 1.75rem;
             }
+
+            /* Table Mobile Fixes */
+            .product-table td {
+                padding: 8px 4px;
+                font-size: 0.75rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .product-table th {
+                padding: 8px 4px;
+                font-size: 0.75rem;
+            }
+
+            .product-code {
+                font-size: 0.75rem;
+                padding: 2px 4px;
+            }
+
+            .status-badge {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
         }
 
         .hidden {
@@ -2069,7 +2093,7 @@
                                 ${item.verified ? 'Verificado' : 'Pendente'}
                             </span>
                         </td>
-                        <td>${item.verifiedAt ? new Date(item.verifiedAt).toLocaleString('pt-BR') : '-'}</td>
+                        <td title="${item.verifiedAt ? new Date(item.verifiedAt).toLocaleString('pt-BR') : '-'}">${item.verifiedAt ? new Date(item.verifiedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' + new Date(item.verifiedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
                     </tr>
                 `).join('');
             }
